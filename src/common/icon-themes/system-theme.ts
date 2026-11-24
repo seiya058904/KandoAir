@@ -13,48 +13,51 @@ import { matchSorter } from 'match-sorter';
 import { IconTheme } from './icon-theme-registry';
 
 /**
- * On some systems, the operating system provides a set of icons that can be used in
- * applications. For instance, on Linux, the Freedesktop Icon Theme Specification defines
- * a set of icons that can be used by applications.
+ * This icon theme shows the icons of installed applications. In KandoAir, the icons are
+ * rendered on demand by the native host and loaded via URL. The list of icon names (the
+ * app names) is only needed by the icon picker of the settings window and is provided via
+ * setIconNames().
  */
 export class SystemTheme implements IconTheme {
-  /** A list of all available icon names. */
   private iconNames: Array<string> = [];
 
-  /** A human-readable name of the icon theme. */
   get name() {
     return 'System Icons';
   }
 
   /**
-   * Creates a new SystemTheme.
+   * Sets the names of all available icons. They are sorted alphabetically.
    *
-   * @param icons A map of icon names to their data URLs. The keys are the icon names, and
-   *   the values are the data URLs of the icons.
+   * @param names The names of the installed applications.
    */
-  constructor(private icons: Map<string, string>) {
-    this.iconNames = Array.from(this.icons.keys()).sort((a, b) => a.localeCompare(b));
+  public setIconNames(names: Array<string>) {
+    this.iconNames = [...names].sort((a, b) => a.localeCompare(b));
   }
 
-  /** Creates a div element that contains the icon with the given name. */
-  createIcon(icon: string) {
-    const iconData = this.icons.get(icon);
-    if (!iconData) {
-      return null;
-    }
-
+  /**
+   * Creates a div element that contains the icon of the given application.
+   *
+   * @param icon The name of the application.
+   * @returns A div element that contains the icon.
+   */
+  createIcon(icon: string, reloadIteration = 0) {
     const containerDiv = document.createElement('div');
     containerDiv.classList.add('icon-container');
 
     const iconDiv = document.createElement('img');
-    iconDiv.src = iconData;
-
+    const suffix = reloadIteration > 0 ? `?reload=${reloadIteration}` : '';
+    iconDiv.src = `https://sys.kandoair.example/app-icon/${encodeURIComponent(icon)}${suffix}`;
+    iconDiv.draggable = false;
     containerDiv.appendChild(iconDiv);
 
     return containerDiv;
   }
 
-  /** Returns information about the icon picker for this icon theme. */
+  /**
+   * The system theme uses a list of icon names for the icon picker.
+   *
+   * @returns The icon picker info.
+   */
   get iconPickerInfo() {
     return {
       type: 'list' as const,

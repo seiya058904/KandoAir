@@ -1,0 +1,572 @@
+{
+  "shortcut": "Control+Space",
+  "useFixedPosition": false,
+  "fixedMenuPosition": {
+    "x": 0.5,
+    "y": 0.5
+  },
+  "root": {
+    "type": "root",
+    "name": "example-menu.name",
+    "icon": "award_star",
+    "iconTheme": "material-symbols-rounded",
+    "activateWorkflow": {
+      "quickSelectKey": "Backspace",
+      "actions": []
+    },
+    "children": [
+      {
+        "type": "submenu",
+        "name": "example-menu.apps.submenu",
+        "icon": "apps",
+        "iconTheme": "material-symbols-rounded",
+        "openWorkflow": {
+          "quickSelectKey": "A",
+          "actions": []
+        },
+        "activateWorkflow": {
+          "quickSelectKey": "Backspace",
+          "actions": []
+        },
+        "children": [
+          {
+            "type": "button",
+            "name": "example-menu.apps.web-browser",
+            "icon": "globe",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "W",
+              "actions": [
+                {
+                  "type": "open-uri",
+                  "uri": "https://www.bing.com"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.apps.email",
+            "icon": "mail",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "E",
+              "actions": [
+                {
+                  "type": "open-uri",
+                  "uri": "mailto:"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.apps.paint",
+            "icon": "brush",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "P",
+              "actions": [
+                {
+                  "type": "launch-app",
+                  "target": "mspaint"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.apps.file-browser",
+            "icon": "folder_shared",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "F",
+              "actions": [
+                {
+                  "type": "launch-app",
+                  "target": "explorer"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.apps.terminal",
+            "icon": "terminal",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "T",
+              "actions": [
+                {
+                  "type": "launch-app",
+                  "target": "powershell"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "submenu",
+        "name": "example-menu.web-links.submenu",
+        "icon": "public",
+        "iconTheme": "material-symbols-rounded",
+        "openWorkflow": {
+          "quickSelectKey": "L",
+          "actions": []
+        },
+        "activateWorkflow": {
+          "quickSelectKey": "Backspace",
+          "actions": []
+        },
+        "children": [
+          {
+            "type": "button",
+            "name": "Google",
+            "icon": "google",
+            "iconTheme": "simple-icons",
+            "selectWorkflow": {
+              "quickSelectKey": "G",
+              "actions": [
+                {
+                  "type": "open-uri",
+                  "uri": "https://www.google.com"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "GitHub",
+            "icon": "github",
+            "iconTheme": "simple-icons",
+            "selectWorkflow": {
+              "quickSelectKey": "H",
+              "actions": [
+                {
+                  "type": "open-uri",
+                  "uri": "https://github.com"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "Wikipedia",
+            "icon": "wikipedia",
+            "iconTheme": "simple-icons",
+            "selectWorkflow": {
+              "quickSelectKey": "K",
+              "actions": [
+                {
+                  "type": "open-uri",
+                  "uri": "https://www.wikipedia.org"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "YouTube",
+            "icon": "youtube",
+            "iconTheme": "simple-icons",
+            "selectWorkflow": {
+              "quickSelectKey": "Y",
+              "actions": [
+                {
+                  "type": "open-uri",
+                  "uri": "https://www.youtube.com"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "Reddit",
+            "icon": "reddit",
+            "iconTheme": "simple-icons",
+            "selectWorkflow": {
+              "quickSelectKey": "D",
+              "actions": [
+                {
+                  "type": "open-uri",
+                  "uri": "https://www.reddit.com"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "button",
+        "name": "example-menu.next-workspace",
+        "icon": "arrow_forward",
+        "iconTheme": "material-symbols-rounded",
+        "selectWorkflow": {
+          "quickSelectKey": "N",
+          "actions": [
+            {
+              "type": "simulate-hotkey",
+              "hotkey": "ControlLeft+MetaLeft+ArrowRight"
+            }
+          ]
+        }
+      },
+      {
+        "type": "submenu",
+        "name": "example-menu.clipboard.submenu",
+        "icon": "assignment",
+        "iconTheme": "material-symbols-rounded",
+        "openWorkflow": {
+          "quickSelectKey": "C",
+          "actions": []
+        },
+        "activateWorkflow": {
+          "quickSelectKey": "Backspace",
+          "actions": []
+        },
+        "children": [
+          {
+            "type": "button",
+            "name": "example-menu.clipboard.paste",
+            "icon": "content_paste_go",
+            "iconTheme": "material-symbols-rounded",
+            "angle": 90,
+            "selectWorkflow": {
+              "quickSelectKey": "V",
+              "actions": [
+                {
+                  "type": "simulate-hotkey",
+                  "hotkey": "ControlLeft+KeyV"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.clipboard.copy",
+            "icon": "content_copy",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "C",
+              "actions": [
+                {
+                  "type": "simulate-hotkey",
+                  "hotkey": "ControlLeft+KeyC"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.clipboard.cut",
+            "icon": "cut",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "X",
+              "actions": [
+                {
+                  "type": "simulate-hotkey",
+                  "hotkey": "ControlLeft+KeyX"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "submenu",
+        "name": "example-menu.audio.submenu",
+        "icon": "play_circle",
+        "iconTheme": "material-symbols-rounded",
+        "openWorkflow": {
+          "quickSelectKey": "A",
+          "actions": []
+        },
+        "activateWorkflow": {
+          "quickSelectKey": "Backspace",
+          "actions": []
+        },
+        "children": [
+          {
+            "type": "button",
+            "name": "example-menu.audio.next-track",
+            "icon": "skip_next",
+            "iconTheme": "material-symbols-rounded",
+            "angle": 90,
+            "selectWorkflow": {
+              "quickSelectKey": "N",
+              "actions": [
+                {
+                  "type": "simulate-hotkey",
+                  "hotkey": "MediaTrackNext"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.audio.play-pause",
+            "icon": "play_pause",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "P",
+              "actions": [
+                {
+                  "type": "simulate-hotkey",
+                  "hotkey": "MediaPlayPause"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.audio.mute",
+            "icon": "music_off",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "M",
+              "actions": [
+                {
+                  "type": "simulate-hotkey",
+                  "hotkey": "AudioVolumeMute"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.audio.previous-track",
+            "icon": "skip_previous",
+            "iconTheme": "material-symbols-rounded",
+            "angle": 270,
+            "selectWorkflow": {
+              "quickSelectKey": "P",
+              "actions": [
+                {
+                  "type": "simulate-hotkey",
+                  "hotkey": "MediaTrackPrevious"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "submenu",
+        "name": "example-menu.windows.submenu",
+        "icon": "select_window",
+        "iconTheme": "material-symbols-rounded",
+        "openWorkflow": {
+          "quickSelectKey": "W",
+          "actions": []
+        },
+        "activateWorkflow": {
+          "quickSelectKey": "Backspace",
+          "actions": []
+        },
+        "children": [
+          {
+            "type": "button",
+            "name": "example-menu.windows.toggle-maximize",
+            "icon": "open_in_full",
+            "iconTheme": "material-symbols-rounded",
+            "angle": 0,
+            "selectWorkflow": {
+              "quickSelectKey": "F",
+              "actions": [
+                {
+                  "type": "simulate-hotkey",
+                  "hotkey": "MetaLeft+ArrowUp"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.windows.tile-right",
+            "icon": "text_select_jump_to_end",
+            "iconTheme": "material-symbols-rounded",
+            "angle": 90,
+            "selectWorkflow": {
+              "quickSelectKey": "R",
+              "actions": [
+                {
+                  "type": "simulate-hotkey",
+                  "hotkey": "MetaLeft+ArrowRight"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.windows.close-window",
+            "icon": "cancel_presentation",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "X",
+              "actions": [
+                {
+                  "type": "simulate-hotkey",
+                  "hotkey": "AltLeft+F4"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.windows.tile-left",
+            "icon": "text_select_jump_to_beginning",
+            "iconTheme": "material-symbols-rounded",
+            "angle": 270,
+            "selectWorkflow": {
+              "quickSelectKey": "L",
+              "actions": [
+                {
+                  "type": "simulate-hotkey",
+                  "hotkey": "MetaLeft+ArrowLeft"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "button",
+        "name": "example-menu.previous-workspace",
+        "icon": "arrow_back",
+        "iconTheme": "material-symbols-rounded",
+        "selectWorkflow": {
+          "quickSelectKey": "P",
+          "actions": [
+            {
+              "type": "simulate-hotkey",
+              "hotkey": "ControlLeft+MetaLeft+ArrowLeft"
+            }
+          ]
+        }
+      },
+      {
+        "type": "submenu",
+        "name": "example-menu.bookmarks.submenu",
+        "icon": "folder_special",
+        "iconTheme": "material-symbols-rounded",
+        "openWorkflow": {
+          "quickSelectKey": "B",
+          "actions": []
+        },
+        "activateWorkflow": {
+          "quickSelectKey": "Backspace",
+          "actions": []
+        },
+        "children": [
+          {
+            "type": "button",
+            "name": "example-menu.bookmarks.downloads",
+            "icon": "download",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "D",
+              "actions": [
+                {
+                  "type": "open-file",
+                  "path": "shell:Downloads"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.bookmarks.videos",
+            "icon": "video_camera_front",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "V",
+              "actions": [
+                {
+                  "type": "open-file",
+                  "path": "shell:My Video"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.bookmarks.pictures",
+            "icon": "imagesmode",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "P",
+              "actions": [
+                {
+                  "type": "open-file",
+                  "path": "shell:My Pictures"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.bookmarks.documents",
+            "icon": "text_ad",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "O",
+              "actions": [
+                {
+                  "type": "open-file",
+                  "path": "shell:Personal"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.bookmarks.desktop",
+            "icon": "desktop_windows",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "E",
+              "actions": [
+                {
+                  "type": "open-file",
+                  "path": "shell:Desktop"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.bookmarks.home",
+            "icon": "home",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "H",
+              "actions": [
+                {
+                  "type": "open-file",
+                  "path": "%USERPROFILE%"
+                }
+              ]
+            }
+          },
+          {
+            "type": "button",
+            "name": "example-menu.bookmarks.music",
+            "icon": "music_note",
+            "iconTheme": "material-symbols-rounded",
+            "selectWorkflow": {
+              "quickSelectKey": "M",
+              "actions": [
+                {
+                  "type": "open-file",
+                  "path": "shell:My Music"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

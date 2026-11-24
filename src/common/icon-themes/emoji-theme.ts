@@ -1,35 +1,26 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 //   _  _ ____ _  _ ___  ____                                                           //
 //   |_/  |__| |\ | |  \ |  |    This file belongs to Kando, the cross-platform         //
-//   | \_ |  | | \| |__/ |__|    pie menu. Read more on github.com/menu/kando           //
+//   | \_ |  | | \| |__/ |__|    pie menu. Read more on github.com/kando-menu/kando     //
 //                                                                                      //
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+// SPDX-FileCopyrightText: KandoAir contributors
 // SPDX-License-Identifier: MIT
-
-import { matchSorter } from 'match-sorter';
-import emojis from 'emojilib';
 
 import { IconTheme } from './icon-theme-registry';
 
 /**
- * This class implements an icon theme that uses emojis as icons. It uses the `emojilib`
- * package to get a list of emojis and their descriptions.
+ * This class implements an icon theme that uses emojis as icons. The searchable emoji
+ * list is attached lazily by the settings window.
  */
 export class EmojiTheme implements IconTheme {
-  /**
-   * This array contains all emojis and their descriptions. Each inner array contains the
-   * emoji itself as first element and all descriptions as following elements.
-   */
-  private icons: Array<Array<string>> = [];
+  private listIconsFn: (searchTerm: string) => Array<string> = () => [];
 
-  constructor() {
-    // Transform the emoji lib object into a nested array where each inner array contains
-    // the emoji itself and all descriptions.
-    this.icons = Object.entries(emojis).map(([emoji, descriptors]) => {
-      return [emoji, ...descriptors];
-    });
+  /** Attaches the searchable emoji list implementation (used by the settings window). */
+  public setListIcons(fn: (searchTerm: string) => Array<string>) {
+    this.listIconsFn = fn;
   }
 
   /** Returns a human-readable name of the icon theme. */
@@ -61,11 +52,7 @@ export class EmojiTheme implements IconTheme {
     return {
       type: 'list' as const,
       usesTextColor: false,
-      listIcons: (searchTerm: string) => {
-        return matchSorter(this.icons, searchTerm, {
-          threshold: matchSorter.rankings.CONTAINS,
-        }).map(([emoji]) => emoji);
-      },
+      listIcons: (searchTerm: string) => this.listIconsFn(searchTerm),
     };
   }
 }

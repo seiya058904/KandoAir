@@ -19,11 +19,10 @@ import { FileIconThemeDescription } from '../../common';
  */
 export class FileIconTheme implements IconTheme {
   /**
-   * The cache for SVG icons. This is used to avoid loading the same SVG icon multiple
-   * times. SVG icons are treated differently than other icons, as they are injected
-   * directly into the DOM to allow for color changes using the "currentColor" property.
+   * The cache for SVG icons (in-flight and resolved promises so concurrent renders of the
+   * same icon share a single fetch and DOMParser pass).
    */
-  private svgIconCache: Map<string, string> = new Map();
+  private svgIconCache: Map<string, Promise<string | null>> = new Map();
 
   /** The last reload iteration for this icon theme. */
   private lastReloadIteration = 0;
@@ -65,12 +64,15 @@ export class FileIconTheme implements IconTheme {
     // colorable using the "currentColor" fill property. Otherwise, we use an <img> tag to
     // load the icon.
     if (icon.endsWith('.svg')) {
-      this.loadAndInjectSvg(`file://${this.description.directory}/${icon}`, containerDiv);
+      this.loadAndInjectSvg(
+        `${this.iconUrl(icon)}?reload=${reloadIteration}`,
+        containerDiv
+      );
       return containerDiv;
     }
 
     const iconDiv = document.createElement('img');
-    iconDiv.src = `file://${this.description.directory}/${icon}?reload=${reloadIteration}`;
+    iconDiv.src = `${this.iconUrl(icon)}?reload=${reloadIteration}`;
     iconDiv.draggable = false;
 
     containerDiv.appendChild(iconDiv);
@@ -79,6 +81,17 @@ export class FileIconTheme implements IconTheme {
   }
 
   /** Returns information about the icon picker for this icon theme. */
+  /**
+   * The theme directory is an URL provided by the host. Each path segment of the icon is
+   * URL-encoded.
+   *
+   * @param icon The relative path of the icon.
+   * @returns The URL of the icon.
+   */
+  private iconUrl(icon: string) {
+    return `${this.description.directory}/${icon.split('/').map(encodeURIComponent).join('/')}`;
+  }
+
   get iconPickerInfo() {
     return {
       type: 'list' as const,
@@ -192,21 +205,29 @@ export class FileIconTheme implements IconTheme {
    * @param containerElement The element to inject the SVG into.
    */
   private async loadAndInjectSvg(iconPath: string, containerElement: HTMLElement) {
-    if (this.svgIconCache.has(iconPath)) {
-      containerElement.innerHTML = this.svgIconCache.get(iconPath);
-      return;
+    let pending = this.svgIconCache.get(iconPath);
+    if (!pending) {
+      pending = fetch(iconPath)
+        .then(async (response) => {
+          if (!response.ok) {
+            return null;
+          }
+          const raw = await response.text();
+          return this.isolateSVG(raw, crypto.randomUUID().slice(-6));
+        })
+        .catch((err): null => {
+          console.error(`Failed to load icon ${iconPath}:`, err);
+          return null;
+        });
+      this.svgIconCache.set(iconPath, pending);
     }
 
-    try {
-      const response = await fetch(iconPath);
-      if (response.ok) {
-        let svgContent = await response.text();
-        svgContent = this.isolateSVG(svgContent, crypto.randomUUID().slice(-6));
-        this.svgIconCache.set(iconPath, svgContent);
-        containerElement.innerHTML = svgContent;
-      }
-    } catch (err) {
-      console.error(`Failed to load icon ${iconPath}:`, err);
+    const svgContent = await pending;
+    if (svgContent) {
+      containerElement.innerHTML = svgContent;
+    } else {
+      // Do not cache transient failures forever.
+      this.svgIconCache.delete(iconPath);
     }
   }
 }

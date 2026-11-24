@@ -56,11 +56,25 @@ export default function TextInput(props: Props) {
   // initialValue prop might change after the component has been initialized.
   React.useEffect(() => setValue(props.initialValue), [props.initialValue]);
 
+  const latestRef = React.useRef({
+    value,
+    initialValue: props.initialValue,
+    onChange: props.onChange,
+  });
+  React.useEffect(() => {
+    latestRef.current = {
+      value,
+      initialValue: props.initialValue,
+      onChange: props.onChange,
+    };
+  });
+
   // Handle beforeunload to trigger final onChange if there are unsaved changes.
   React.useEffect(() => {
     const handleBeforeUnload = () => {
-      if (value !== props.initialValue && props.onChange) {
-        props.onChange(value);
+      const { value: current, initialValue, onChange } = latestRef.current;
+      if (current !== initialValue && onChange) {
+        onChange(current);
       }
     };
 
@@ -69,7 +83,7 @@ export default function TextInput(props: Props) {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [value, props]);
+  }, []);
 
   if (props.isMultiline) {
     return (

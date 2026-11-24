@@ -111,9 +111,14 @@ export default function Popover(props: Props) {
       }
     };
 
-    // Dismiss the popover when the user presses ESC.
+    // Dismiss the popover when the user presses ESC, only if it is the topmost overlay.
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (
+        event.key === 'Escape' &&
+        popoverContent.current &&
+        FocusTrapManager.isTopMost(popoverContent.current)
+      ) {
+        event.stopPropagation();
         onClose();
       }
     };

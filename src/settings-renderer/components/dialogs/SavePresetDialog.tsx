@@ -133,8 +133,6 @@ export default function SavePresetDialog(props: Props) {
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !error && presetName.trim()) {
               handleSave();
-            } else if (e.key === 'Escape') {
-              props.onClose();
             }
           }}
         />

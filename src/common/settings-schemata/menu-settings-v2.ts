@@ -15,22 +15,15 @@ import { version } from './../../../package.json';
 // #region                        Workflow Actions
 // ------------------------------------------------------------------------------------ //
 
-/** This action will close the menu when executed. */
-export const CLOSE_MENU_ACTION_SCHEMA_V2 = z.object({
-  type: z.literal('close-menu'),
-});
-
-/** This action will close the current submenu when executed. */
-export const CLOSE_SUBMENU_ACTION_SCHEMA_V2 = z.object({
-  type: z.literal('close-submenu'),
-});
-
-/** This action will simply wait for a specified amount of time when triggered. */
-export const DELAY_ACTION_SCHEMA_V2 = z.object({
-  type: z.literal('delay'),
-
-  /** The amount of time to wait in seconds. */
-  duration: z.number(),
+/**
+ * This action will launch an application. The target is either a `shell:AppsFolder\<ID>`
+ * link (any app from the start menu, including Store apps), a path to an executable or a
+ * shortcut, or the name of a program which is registered in App Paths or on the PATH.
+ */
+export const LAUNCH_APP_ACTION_SCHEMA_V2 = z.object({
+  type: z.literal('launch-app'),
+  /** The app to launch. */
+  target: z.string(),
 });
 
 /** This action will execute a command when triggered. */
@@ -46,48 +39,6 @@ export const EXECUTE_COMMAND_ACTION_SCHEMA_V2 = z.object({
    * closed.
    */
   detached: z.boolean().default(true),
-
-  /**
-   * If set, the command will be executed in a clean environment, meaning that it will not
-   * inherit any environment variables from Kando. This is not yet supported on all
-   * platforms.
-   */
-  isolated: z.boolean().default(false),
-});
-
-/** Temporarily disables all Kando shortcuts when triggered. */
-export const INHIBIT_SHORTCUTS_ACTION_SCHEMA_V2 = z.object({
-  type: z.literal('inhibit-shortcuts'),
-});
-
-/** Macros are composed of these events. */
-export const MACRO_EVENT_SCHEMA_V2 = z.object({
-  type: z.enum(['keyDown', 'keyUp']),
-
-  /** The delay before executing this event in milliseconds. */
-  delay: z.number().default(0),
-
-  /** The key for this event. This can be a single character or a special key like 'Enter'. */
-  key: z.string(),
-});
-
-/** This action will trigger a complex macro when triggered. */
-export const EXECUTE_MACRO_ACTION_SCHEMA_V2 = z.object({
-  type: z.literal('execute-macro'),
-
-  /** The macro to trigger. */
-  macro: z.array(MACRO_EVENT_SCHEMA_V2),
-});
-
-/** This action will focus a matching application window. */
-export const FOCUS_WINDOW_ACTION_SCHEMA_V2 = z.object({
-  type: z.literal('focus-window'),
-
-  /** Regex to match for a window name */
-  windowName: z.string().optional(),
-
-  /** Regex to match for an application name. */
-  appName: z.string().optional(),
 });
 
 /** This action will open a file when triggered. */
@@ -98,44 +49,12 @@ export const OPEN_FILE_ACTION_SCHEMA_V2 = z.object({
   path: z.string(),
 });
 
-/** This action will open Kando's settings when triggered. */
-export const OPEN_SETTINGS_ACTION_SCHEMA_V2 = z.object({
-  type: z.literal('open-settings'),
-});
-
-/** This action will open another menu when triggered. */
-export const OPEN_MENU_ACTION_SCHEMA_V2 = z.object({
-  type: z.literal('open-menu'),
-
-  /** The menu to open. */
-  menu: z.string(),
-});
-
 /** This action will open an URI when triggered. */
 export const OPEN_URI_ACTION_SCHEMA_V2 = z.object({
   type: z.literal('open-uri'),
 
   /** The URI to open. */
   uri: z.string(),
-});
-
-/** This action will set the clipboard when triggered. */
-export const SET_CLIPBOARD_ACTION_SCHEMA_V2 = z.object({
-  type: z.literal('set-clipboard'),
-
-  /** The text to copy to the clipboard. */
-  text: z.string(),
-});
-
-/** This action will send a message to a WebSocket server when triggered. */
-export const SEND_WEBSOCKET_MESSAGE_ACTION_SCHEMA_V2 = z.object({
-  type: z.literal('send-websocket-message'),
-
-  /** The URL of the WebSocket server to connect to. */
-  url: z.string(),
-
-  /** The message to send to the WebSocket server. */
-  message: z.string(),
 });
 
 /** This action will simulate a hotkey when triggered. */
@@ -146,22 +65,54 @@ export const SIMULATE_HOTKEY_ACTION_SCHEMA_V2 = z.object({
   hotkey: z.string(),
 });
 
-/** This type describes the possible actions that can be performed in a workflow. */
+/** This action will copy text to the clipboard when triggered. */
+export const SET_CLIPBOARD_ACTION_SCHEMA_V2 = z.object({
+  type: z.literal('set-clipboard'),
+
+  /** The text to copy to the clipboard. */
+  text: z.string(),
+});
+
+/** One recorded key event in an execute-macro action. */
+export const MACRO_EVENT_SCHEMA_V2 = z.object({
+  type: z.enum(['keyDown', 'keyUp']),
+  key: z.string(),
+  delay: z.number().optional(),
+});
+
+/** This action will replay a recorded key macro when triggered. */
+export const EXECUTE_MACRO_ACTION_SCHEMA_V2 = z.object({
+  type: z.literal('execute-macro'),
+  macro: z.array(MACRO_EVENT_SCHEMA_V2).default([]),
+});
+
+/** This action will focus a matching open window when triggered. */
+export const FOCUS_WINDOW_ACTION_SCHEMA_V2 = z.object({
+  type: z.literal('focus-window'),
+  appName: z.string().optional(),
+  windowName: z.string().optional(),
+});
+
+/** This action will open another menu by name when triggered. */
+export const OPEN_MENU_ACTION_SCHEMA_V2 = z.object({
+  type: z.literal('open-menu'),
+  menu: z.string(),
+});
+
+/**
+ * KandoAir supports these nine single-step native actions. Selecting an item runs its
+ * action and closes the menu (or switches to the target menu for `open-menu`).
+ */
 export const WORKFLOW_ACTION_SCHEMA_V2 = z.discriminatedUnion('type', [
-  CLOSE_MENU_ACTION_SCHEMA_V2,
-  CLOSE_SUBMENU_ACTION_SCHEMA_V2,
-  DELAY_ACTION_SCHEMA_V2,
+  LAUNCH_APP_ACTION_SCHEMA_V2,
+  OPEN_FILE_ACTION_SCHEMA_V2,
+  OPEN_URI_ACTION_SCHEMA_V2,
+  SIMULATE_HOTKEY_ACTION_SCHEMA_V2,
   EXECUTE_COMMAND_ACTION_SCHEMA_V2,
+  SET_CLIPBOARD_ACTION_SCHEMA_V2,
   EXECUTE_MACRO_ACTION_SCHEMA_V2,
   FOCUS_WINDOW_ACTION_SCHEMA_V2,
-  INHIBIT_SHORTCUTS_ACTION_SCHEMA_V2,
-  OPEN_FILE_ACTION_SCHEMA_V2,
   OPEN_MENU_ACTION_SCHEMA_V2,
-  OPEN_SETTINGS_ACTION_SCHEMA_V2,
-  OPEN_URI_ACTION_SCHEMA_V2,
-  SET_CLIPBOARD_ACTION_SCHEMA_V2,
-  SEND_WEBSOCKET_MESSAGE_ACTION_SCHEMA_V2,
-  SIMULATE_HOTKEY_ACTION_SCHEMA_V2,
 ]);
 
 /** This type describes a workflow for a menu item is triggered when it is selected. */
@@ -220,9 +171,6 @@ export const BUTTON_MENU_ITEM_SCHEMA_V2 = BASE_MENU_ITEM_SCHEMA_V2.extend({
    */
   angle: z.number().optional(),
 
-  /** The workflow which is triggered when the item is hovered. */
-  hoverWorkflow: WORKFLOW_SCHEMA_V2.optional(),
-
   /** The workflow which is triggered when the item is selected. */
   selectWorkflow: WORKFLOW_SCHEMA_V2.optional(),
 });
@@ -239,9 +187,6 @@ export const SUBMENU_MENU_ITEM_SCHEMA_V2 = BASE_MENU_ITEM_SCHEMA_V2.extend({
    * menu is opened. If set, it is considered to be a "fixed angle".
    */
   angle: z.number().optional(),
-
-  /** The workflow which is triggered when the submenu is hovered. */
-  hoverWorkflow: WORKFLOW_SCHEMA_V2.optional(),
 
   /** The workflow which is triggered when the submenu is opened. */
   openWorkflow: WORKFLOW_SCHEMA_V2.optional(),
@@ -269,25 +214,18 @@ export const MENU_ITEM_SCHEMA_V2 = z.union([
 ]);
 
 // ------------------------------------------------------------------------------------ //
-// #region                         Menu Conditions
+// #region                             Menus
 // ------------------------------------------------------------------------------------ //
 
-/**
- * This type is used to describe the conditions under which a menu should be shown. When a
- * menu shall be shown, the conditions of all menus are checked. The menu with the most
- * conditions that are met is selected.
- */
+/** Conditions for selecting a menu when multiple menus share the same shortcut. */
 export const MENU_CONDITIONS_SCHEMA_V2 = z.object({
-  /** Regex to match for a window name */
-  windowName: z.string().optional(),
-
-  /** Regex to match for an application name. */
+  /** Match the active application's executable name. */
   appName: z.string().optional(),
 
-  /**
-   * Cursor position to match. In pixels relative to the top-left corner of the primary
-   * display.
-   */
+  /** Match the active window's title. */
+  windowName: z.string().optional(),
+
+  /** Match the cursor position in physical screen coordinates. */
   screenArea: z
     .object({
       xMin: z.number().optional(),
@@ -297,10 +235,6 @@ export const MENU_CONDITIONS_SCHEMA_V2 = z.object({
     })
     .optional(),
 });
-
-// ------------------------------------------------------------------------------------ //
-// #region                             Menus
-// ------------------------------------------------------------------------------------ //
 
 /**
  * This type describes a menu. It contains the root item of the menu, the shortcut to open
@@ -319,13 +253,6 @@ export const MENU_SCHEMA_V2 = z.object({
    * @todo: Add description of the format of the shortcut string.
    */
   shortcut: z.string().default(''),
-
-  /**
-   * Some backends do not support direct binding of shortcuts. In this case, the user will
-   * not be able to change the shortcut in the settings. Instead, the user provides an ID
-   * for the shortcut and can then assign a key binding in the operating system.
-   */
-  shortcutID: z.string().default(''),
 
   /**
    * If true, the menu will open at a fixed position determined by
@@ -354,8 +281,8 @@ export const MENU_SCHEMA_V2 = z.object({
   hoverMode: z.boolean().default(false),
 
   /**
-   * Conditions are matched before showing a menu. The one that has more conditions and
-   * met them all is selected.
+   * Conditions are matched before showing a menu. The menu with the most matched
+   * conditions is selected.
    */
   conditions: MENU_CONDITIONS_SCHEMA_V2.optional(),
 
@@ -422,24 +349,16 @@ export type WorkflowActionV2 = z.infer<typeof WORKFLOW_ACTION_SCHEMA_V2>;
 export type WorkflowActionTypeV2 = z.infer<typeof WORKFLOW_ACTION_SCHEMA_V2>['type'];
 export type MenuItemTypeV2 = z.infer<typeof MENU_ITEM_SCHEMA_V2>['type'];
 
-export type MacroEventV2 = z.infer<typeof MACRO_EVENT_SCHEMA_V2>;
-
-export type CloseMenuActionV2 = z.infer<typeof CLOSE_MENU_ACTION_SCHEMA_V2>;
-export type CloseSubmenuActionV2 = z.infer<typeof CLOSE_SUBMENU_ACTION_SCHEMA_V2>;
+export type LaunchAppActionV2 = z.infer<typeof LAUNCH_APP_ACTION_SCHEMA_V2>;
 export type ExecuteCommandActionV2 = z.infer<typeof EXECUTE_COMMAND_ACTION_SCHEMA_V2>;
 export type ExecuteMacroActionV2 = z.infer<typeof EXECUTE_MACRO_ACTION_SCHEMA_V2>;
 export type FocusWindowActionV2 = z.infer<typeof FOCUS_WINDOW_ACTION_SCHEMA_V2>;
-export type InhibitShortcutsActionV2 = z.infer<typeof INHIBIT_SHORTCUTS_ACTION_SCHEMA_V2>;
+export type MacroEventV2 = z.infer<typeof MACRO_EVENT_SCHEMA_V2>;
 export type OpenFileActionV2 = z.infer<typeof OPEN_FILE_ACTION_SCHEMA_V2>;
 export type OpenMenuActionV2 = z.infer<typeof OPEN_MENU_ACTION_SCHEMA_V2>;
-export type OpenSettingsActionV2 = z.infer<typeof OPEN_SETTINGS_ACTION_SCHEMA_V2>;
 export type OpenURIActionV2 = z.infer<typeof OPEN_URI_ACTION_SCHEMA_V2>;
 export type SetClipboardActionV2 = z.infer<typeof SET_CLIPBOARD_ACTION_SCHEMA_V2>;
-export type SendWebSocketMessageActionV2 = z.infer<
-  typeof SEND_WEBSOCKET_MESSAGE_ACTION_SCHEMA_V2
->;
 export type SimulateHotkeyActionV2 = z.infer<typeof SIMULATE_HOTKEY_ACTION_SCHEMA_V2>;
-export type DelayActionV2 = z.infer<typeof DELAY_ACTION_SCHEMA_V2>;
 
 export type RootMenuItemV2 = z.infer<typeof ROOT_MENU_ITEM_SCHEMA_V2>;
 export type ButtonMenuItemV2 = z.infer<typeof BUTTON_MENU_ITEM_SCHEMA_V2>;

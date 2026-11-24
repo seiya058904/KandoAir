@@ -6,18 +6,24 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+// SPDX-FileCopyrightText: KandoAir contributors
 // SPDX-License-Identifier: MIT
 
 import './index.scss';
 
-import { WindowWithAPIs } from './menu-window-api';
+import { WindowWithAPIs, MENU_WINDOW_API } from './menu-window-api';
+import { COMMON_WINDOW_API } from '../common/common-window-api';
 declare const window: WindowWithAPIs;
+
+// In KandoAir, the APIs are provided by the WebView2 bridge instead of a preload script.
+Object.assign(window, { commonAPI: COMMON_WINDOW_API, menuAPI: MENU_WINDOW_API });
 
 import { Menu } from './menu';
 import { SettingsButton } from './settings-button';
 import { MenuTheme } from './menu-theme';
 import { SoundTheme } from './sound-theme';
 import { IconThemeRegistry } from '../common/icon-themes/icon-theme-registry';
+import KeyMapper from '../common/key-mapper';
 import { CenterText } from './center-text';
 import { MenuInteractionType } from '../common';
 
@@ -27,10 +33,8 @@ import { MenuInteractionType } from '../common';
  * hidden until the user requests a menu. So the code below is executed only once.
  */
 
-// Wire up the menu ----------------------------------------------------------------------
+// Wire up the menu and the settings button -----------------------------------------------
 
-// We need some information from the main process before we can start. This includes the
-// backend info, the menu theme, and the menu theme colors.
 Promise.all([
   window.commonAPI.getMenuTheme(),
   window.commonAPI.getCurrentMenuThemeColors(),
@@ -43,12 +47,22 @@ Promise.all([
   menuTheme.loadDescription(themeDescription);
   menuTheme.setColors(colors);
 
-  // The center text is not directly shown by the menu, but handled by a separate class.
+  const soundTheme = new SoundTheme();
+  soundTheme.loadDescription(soundThemeDescription);
+  soundTheme.setVolume(settings.soundVolume);
+
+  const reloadSoundTheme = async () => {
+    const description = await window.commonAPI.getSoundTheme();
+    soundTheme.loadDescription(description);
+  };
+
+  // We also create a new center text object. This will be used to display the name of the
+  // currently selected menu item in the center of the menu.
   const centerText = new CenterText(document.getElementById('kando-menu'));
   centerText.setDiameter(menuTheme.centerTextWrapWidth);
   centerText.setEnabled(menuTheme.drawCenterText);
 
-  // This will be called below whenever the menu theme should be reloaded.
+  // When the color scheme or the accent colors change, we reload the menu theme.
   const reloadMenuTheme = async () => {
     Promise.all([
       window.commonAPI.getMenuTheme(),
@@ -56,11 +70,8 @@ Promise.all([
     ]).then(([themeDescription, colors]) => {
       menuTheme.loadDescription(themeDescription);
       menuTheme.setColors(colors);
-
       centerText.setDiameter(menuTheme.centerTextWrapWidth);
       centerText.setEnabled(menuTheme.drawCenterText);
-
-      // Reload the menu if it is currently shown.
       const [root, menuOptions] = menu.getCurrentRequest();
       if (root) {
         menu.show(root, menuOptions);
@@ -70,20 +81,12 @@ Promise.all([
 
   window.commonAPI.darkModeChanged(reloadMenuTheme);
   window.menuAPI.onReloadMenuTheme(reloadMenuTheme);
+  window.menuAPI.onReloadSoundTheme(reloadSoundTheme);
 
-  // We also create a new sound theme and load the description we got from the main
-  // process.
-  const soundTheme = new SoundTheme();
-  soundTheme.loadDescription(soundThemeDescription);
-  soundTheme.setVolume(settings.soundVolume);
+  // Initialize keyboard layout mapping so quick-select keys work reliably with IMEs.
+  KeyMapper.init();
 
-  // This will be called whenever the sound theme should be reloaded.
-  window.menuAPI.onReloadSoundTheme(async () => {
-    const description = await window.commonAPI.getSoundTheme();
-    soundTheme.loadDescription(description);
-  });
-
-  // This will be called whenever the icons should be reloaded.
+  // Reload the icon themes if requested.
   window.menuAPI.onReloadIconThemes(async () => {
     await IconThemeRegistry.getInstance().init();
   });
@@ -91,27 +94,21 @@ Promise.all([
   // Initialize the icon theme registry.
   await IconThemeRegistry.getInstance().init();
 
-  // Create the settings button. This is the button that is shown in one corner of the
-  // screen. It is used to open the settings dialog.
+  // We create the settings button and the menu.
   const settingsButton = new SettingsButton(
     document.getElementById('settings-button') as HTMLButtonElement,
     settings
   );
 
-  // Helper function to group and re-use function calls
-  // associated with showing the settings window.
   const showSettings = () => {
     menu.triggerInteraction(MenuInteractionType.eCloseMenu);
     window.menuAPI.showSettings();
   };
 
-  // Show the settings dialog when the button is clicked.
   settingsButton.on('click', () => {
     showSettings();
   });
 
-  // Now, we create the menu. It will be responsible for drawing the menu and handling
-  // user input. It is re-used for every menu that is shown.
   const menu = new Menu(
     document.getElementById('kando-menu'),
     menuTheme,
@@ -119,71 +116,80 @@ Promise.all([
     settings
   );
 
-  // Show the menu when the main process requests it.
+  // Show the menu when the host requests it. Once the first frame of the menu has been
+  // rendered, we report back so that the host can measure the latency.
   window.menuAPI.onShowMenu(async (root, menuOptions) => {
-    if (menuOptions.systemIconsChanged) {
-      await IconThemeRegistry.getInstance().reloadSystemIcons();
-    }
     menu.show(root, menuOptions);
     settingsButton.show();
+    requestAnimationFrame(() => requestAnimationFrame(() => window.menuAPI.menuShown()));
   });
 
-  // Tell the menu about interactions triggered by the host process. This includes closing
-  // the menu or closing the current submenu.
+  // Sometimes, the host may request to close the menu or a submenu.
   window.menuAPI.onTriggerInteraction((type) => {
     menu.triggerInteraction(type);
   });
 
-  // Tell the host process about interactions triggered by the user or also by the host
-  // process itself via the onTriggerInteraction function.
-  menu.on('interaction', (type, path, time, source) => {
-    window.menuAPI.finalizeInteraction(type, path, time, source);
+  let currentSettings = settings;
 
-    // If the menu was closed, we also hide the settings button.
-    if (type === 'closeMenu') {
-      settingsButton.hide();
+  // Report actionable menu interactions to the host process and play interaction sounds.
+  // Skip sending hover/open/submenu-nav events over IPC because the host ignores them.
+  menu.on('interaction', (type, path, time, source) => {
+    soundTheme.playSound(type);
+    if (
+      type === MenuInteractionType.eCloseMenu ||
+      type === MenuInteractionType.eActivateMenu ||
+      type === MenuInteractionType.eSelectButton
+    ) {
+      window.menuAPI.finalizeInteraction(type, path, time, source);
     }
 
-    soundTheme.playSound(type);
+    if (type === MenuInteractionType.eCloseMenu) {
+      settingsButton.hide();
+      soundTheme.scheduleSuspend();
+    }
   });
 
-  // Tell the menu about settings changes. This could check more detailed which setting
-  // has changed and only update the necessary parts. But for now, we just reload the
-  // whole menu theme.
+  // Reload the menu or sound theme only when theme-related settings actually changed.
   window.commonAPI.generalSettings.onChange((newSettings, oldSettings) => {
-    reloadMenuTheme();
+    currentSettings = newSettings;
+    const themeChanged =
+      !oldSettings ||
+      newSettings.menuTheme !== oldSettings.menuTheme ||
+      newSettings.darkMenuTheme !== oldSettings.darkMenuTheme ||
+      newSettings.enableDarkModeForMenuThemes !==
+        oldSettings.enableDarkModeForMenuThemes ||
+      JSON.stringify(newSettings.menuThemeColors) !==
+        JSON.stringify(oldSettings.menuThemeColors) ||
+      JSON.stringify(newSettings.darkMenuThemeColors) !==
+        JSON.stringify(oldSettings.darkMenuThemeColors);
+
+    if (themeChanged) {
+      reloadMenuTheme();
+    }
+
+    if (!oldSettings || newSettings.soundTheme !== oldSettings.soundTheme) {
+      reloadSoundTheme();
+    }
+    soundTheme.setVolume(newSettings.soundVolume);
+
     menu.updateSettings(newSettings);
     settingsButton.updateSettings(newSettings);
-
-    if (newSettings.soundTheme !== oldSettings.soundTheme) {
-      window.commonAPI.getSoundTheme().then((description) => {
-        soundTheme.loadDescription(description);
-      });
-    }
-
-    if (newSettings.soundVolume !== oldSettings.soundVolume) {
-      soundTheme.setVolume(newSettings.soundVolume);
-    }
   });
 
-  // Sometimes, the user may select an item too close to the edge of the screen. In this
-  // case, we can not open the menu directly under the pointer. To make sure that the
-  // menu is still exactly under the pointer, we move the pointer a little bit.
+  // This is used to warp the mouse pointer to a different position.
   menu.on('move-pointer', (dist) => {
     window.menuAPI.movePointer(dist);
   });
 
-  document.body.addEventListener('keydown', async (ev) => {
-    // Hide the menu when the user presses escape.
+  // Hide the menu when the user presses escape. Also, open the settings when the user
+  // presses ctrl + comma.
+  document.body.addEventListener('keydown', (ev) => {
     if (ev.key === 'Escape') {
       menu.triggerInteraction(MenuInteractionType.eCloseMenu);
     }
 
-    // Show the settings window if 'cmd + ,' hotkey is pressed on macOS
-    // or 'ctrl + ,' is pressed on non macOS systems.
-    const keyIsComma = ev.key === ',';
-    if ((ev.metaKey && keyIsComma && cIsMac) || (ev.ctrlKey && keyIsComma && !cIsMac)) {
-      if ((await window.commonAPI.generalSettings.get()).useDefaultOsShowSettingsHotkey) {
+    if (ev.ctrlKey && ev.key === ',') {
+      if (currentSettings.useDefaultOsShowSettingsHotkey) {
         showSettings();
       }
     }
@@ -193,6 +199,6 @@ Promise.all([
   // finished reloading.
   window.commonAPI.log("Successfully loaded Kando's Menu process.");
 
-  // Notify the main process that we are ready.
+  // Notify the host process that the menu window is ready.
   window.menuAPI.menuWindowReady();
 });

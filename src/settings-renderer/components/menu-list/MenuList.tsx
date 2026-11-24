@@ -63,12 +63,10 @@ export default function MenuList() {
     icon: menu.root.icon,
     iconTheme: menu.root.iconTheme,
     shortcut: menu.shortcut,
-    shortcutID: menu.shortcutID,
     tags: menu.tags,
   }));
   const menuCollections = useMenuSettings((state) => state.collections);
   const selectedCollection = useAppState((state) => state.selectedCollection);
-  const backend = useAppState((state) => state.backendInfo);
   const selectedMenu = useAppState((state) => state.selectedMenu);
   const selectMenu = useAppState((state) => state.selectMenu);
   const addMenu = useMenuSettings((state) => state.addMenu);
@@ -91,9 +89,7 @@ export default function MenuList() {
   // We will compile a list of all menus which are currently visible. We will use a list
   // of IRenderedMenu objects for this.
   let renderedMenus = menus.map((menu, index) => {
-    const configuredShortcut = backend.supportsShortcuts
-      ? formatShortcutForDisplay(menu.shortcut, cIsMac)
-      : menu.shortcutID;
+    const configuredShortcut = formatShortcutForDisplay(menu.shortcut, cIsMac);
     const shortcut = configuredShortcut || i18next.t('settings.not-bound');
     const renderedMenu: RenderedMenu = {
       key: menu.name + menu.icon + menu.iconTheme + shortcut,
@@ -128,9 +124,11 @@ export default function MenuList() {
       }
 
       // Else, a menu must have all tags of the selected collection to be visible.
-      return menuCollections[selectedCollection].tags.every((tag) =>
-        menus[menu.index].tags?.includes(tag)
-      );
+      const collection = menuCollections[selectedCollection];
+      if (!collection) {
+        return true;
+      }
+      return collection.tags.every((tag) => menus[menu.index].tags?.includes(tag));
     })
     .filter((menu) => {
       // If the user has not entered a filter term or if the filter bar is not visible,
@@ -139,8 +137,14 @@ export default function MenuList() {
         return true;
       }
 
-      // Else, a menu must contain the filter term to be visible.
-      return menu.name.toLowerCase().includes(filterTerm.toLowerCase());
+      // Match against menu name, shortcut, or tags for quick discovery.
+      const query = filterTerm.toLowerCase();
+      return (
+        menu.name.toLowerCase().includes(query) ||
+        menu.shortcut.toLowerCase().includes(query) ||
+        (menus[menu.index].tags?.some((tag) => tag.toLowerCase().includes(query)) ??
+          false)
+      );
     });
 
   return (
@@ -301,26 +305,31 @@ export default function MenuList() {
                       <div className={classes.menuSubtitle}>{menu.shortcut}</div>
                     </div>
 
-                    <div className={classes.toolButtonContainer}>
+                    <div
+                      className={classes.toolButtonContainer}
+                      onClick={(event) => event.stopPropagation()}>
                       <Button
                         tooltip={i18next.t('settings.export-menu')}
                         icon={<TbUpload />}
                         variant="tool"
-                        onClick={() => window.settingsAPI.exportMenu(selectedMenu)}
+                        onClick={() => window.settingsAPI.exportMenu(menu.index)}
                       />
 
                       <Button
                         tooltip={i18next.t('settings.duplicate-menu')}
                         icon={<TbCopy />}
                         variant="tool"
-                        onClick={() => duplicateMenu(selectedMenu)}
+                        onClick={() => {
+                          duplicateMenu(menu.index);
+                          selectMenu(menu.index + 1);
+                        }}
                       />
 
                       <Button
                         tooltip={i18next.t('settings.delete-menu')}
                         icon={<TbTrash />}
                         variant="tool"
-                        onClick={() => deleteMenu(selectedMenu)}
+                        onClick={() => deleteMenu(menu.index)}
                       />
                     </div>
                   </div>
@@ -345,7 +354,12 @@ export default function MenuList() {
                 tooltip={i18next.t('settings.import-menu')}
                 variant="pill"
                 onClick={() => {
-                  window.settingsAPI.importMenu();
+                  const prevCount = useMenuSettings.getState().menus.length;
+                  window.settingsAPI.importMenu().then((imported) => {
+                    if (imported) {
+                      selectMenu(prevCount);
+                    }
+                  });
                 }}
               />
             </div>

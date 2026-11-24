@@ -179,7 +179,6 @@ export const useMenuSettings = create<MenuSettings & MenuStateActions>()(
           produce((state) => {
             const newMenu: Menu = {
               shortcut: '',
-              shortcutID: '',
               useFixedPosition: false,
               fixedMenuPosition: { x: 0.5, y: 0.5 },
               anchored: false,
@@ -192,11 +191,7 @@ export const useMenuSettings = create<MenuSettings & MenuStateActions>()(
                 iconTheme: 'material-symbols-rounded',
                 activateWorkflow: {
                   quickSelectKey: 'Backspace',
-                  actions: [
-                    {
-                      type: 'close-menu',
-                    },
-                  ],
+                  actions: [],
                 },
                 children: [],
               },

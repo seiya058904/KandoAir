@@ -12,10 +12,10 @@ import React from 'react';
 import i18next from 'i18next';
 import { TbBackspaceFilled } from 'react-icons/tb';
 
-import { Button, InfoItem, Modal, Scrollbox, ThemedIcon } from '../common';
+import { Button, Modal, Scrollbox, ThemedIcon } from '../common';
 import * as classes from './ActionPicker.module.scss';
 import { WorkflowAction, WorkflowActionType } from '../../../common';
-import { ActionTypeRegistry } from '../../../common/action-type-registry';
+import { ActionTypeRegistry, ACTION_TYPES } from '../../../common/action-type-registry';
 
 type Props = {
   /** Whether the action picker modal is visible. */
@@ -35,19 +35,24 @@ type Props = {
 export default function ActionPicker(props: Props) {
   const registry = ActionTypeRegistry.getInstance();
   const [filterTerm, setFilterTerm] = React.useState('');
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   const allMetadata = registry.getAllMetadata();
 
-  const actionTypes = (Object.keys(allMetadata) as WorkflowActionType[])
-    .map((actionType) => [actionType, allMetadata[actionType]] as const)
-    .filter(([, metadata]) =>
-      metadata.name.toLowerCase().includes(filterTerm.toLowerCase())
-    )
-    .sort((a, b) => a[1].name.localeCompare(b[1].name));
+  // The action types are listed in the order of ACTION_TYPES.
+  const query = filterTerm.toLowerCase();
+  const actionTypes = ACTION_TYPES.map(
+    (actionType) => [actionType, allMetadata[actionType]] as const
+  ).filter(
+    ([, metadata]) =>
+      metadata.name.toLowerCase().includes(query) ||
+      metadata.description.toLowerCase().includes(query)
+  );
 
   React.useEffect(() => {
     if (props.isVisible) {
       setFilterTerm('');
+      setTimeout(() => searchInputRef.current?.focus(), 0);
     }
   }, [props.isVisible]);
 
@@ -67,6 +72,7 @@ export default function ActionPicker(props: Props) {
       <div className={classes.container}>
         <div className={classes.searchInput}>
           <input
+            ref={searchInputRef}
             placeholder={i18next.t(
               'settings.workflow-editor.action-picker.search-placeholder'
             )}
@@ -81,6 +87,7 @@ export default function ActionPicker(props: Props) {
             icon={<TbBackspaceFilled />}
             onClick={() => {
               setFilterTerm('');
+              searchInputRef.current?.focus();
             }}
           />
         </div>
@@ -89,7 +96,6 @@ export default function ActionPicker(props: Props) {
             {actionTypes.map(([actionType, metadata]) => (
               <button
                 key={actionType}
-                disabled={metadata.supportedByBackend === false}
                 className={classes.actionTypeItem}
                 type="button"
                 onClick={() => {
@@ -101,16 +107,7 @@ export default function ActionPicker(props: Props) {
                 </div>
 
                 <div>
-                  <div className={classes.actionTypeName}>
-                    {metadata.name}{' '}
-                    {metadata.supportedByBackend ? null : (
-                      <InfoItem
-                        key="warning"
-                        isWarning
-                        info={i18next.t('settings.workflow-editor.action-not-supported')}
-                      />
-                    )}
-                  </div>
+                  <div className={classes.actionTypeName}>{metadata.name}</div>
                   <div className={classes.actionTypeDetails}>{metadata.description}</div>
                 </div>
               </button>

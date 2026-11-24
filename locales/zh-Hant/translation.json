@@ -6,7 +6,6 @@
             "file-example": "文件 URI 範例：",
             "url-example": "URL 範例：",
             "search-placeholder": "搜尋圖示…",
-            "hint": "點擊[這裡]({{link}})了解如何新增或建立自己的圖示主題。",
             "reload-button-tooltip": "重新載入所有圖示主題"
         },
         "not-bound": "未綁定",
@@ -16,21 +15,21 @@
         },
         "add-tags-placeholder": "新增標籤…",
         "about-dialog": {
-            "title": "關於 Kando",
-            "kando-version": "Kando 版本",
-            "kando-backend": "Kando 後端",
+            "title": "關於 KandoAir",
+            "message-air": "KandoAir 是基於 Simon Schneegans 的 [Kando]({{link}}) 開發的 Windows 輕量版，採用 MIT 授權。",
+            "kando-version": "KandoAir 版本",
+            "kando-backend": "KandoAir 後端",
             "electron-version": "Electron 版本",
             "chrome-version": "Chrome 版本",
             "check-latest-release": "檢查最新版本",
-            "message": "我憑著純粹的熱忱在開發 Kando。如果您喜歡使用它，就如同我享受打造它一樣，歡迎[請我喝杯咖啡]({{link}})！\n\n💖 Simon",
             "read-release-notes": "閱讀版本資訊"
         },
         "general-settings-dialog": {
             "title": "一般設定",
-            "message": "您的所有選單與 Kando 設定都儲存在 2 個 JSON 檔案中，可以編輯、分享或備份這些檔案。點擊[這裡]({{link}})即可開啟檔案所在的目錄。",
+            "message": "您的所有選單與 KandoAir 設定都儲存在 2 個 JSON 檔案中，可以編輯、分享或備份這些檔案。點擊[這裡]({{link}})即可開啟檔案所在的目錄。",
             "app-behavior": "應用程式行為",
             "check-for-new-versions": "檢查新版本",
-            "check-for-new-versions-info": "啟用後，Kando 將在有新版本可用時顯示通知。",
+            "check-for-new-versions-info": "啟用後，KandoAir 將在有新版本可用時顯示通知。",
             "settings-button-position": "設定按鈕位置",
             "top-left": "左上角",
             "top-right": "右上角",
@@ -80,7 +79,7 @@
             "reload-menu-theme": "重新載入選單主題",
             "developer-options": "開發者選項",
             "reload-sound-theme": "重新載入音效主題",
-            "dev-tools-note": "Kando 使用兩個視窗：一個用於選單，另一個用於設定。開啟開發者工具可分別檢視這兩個視窗。",
+            "dev-tools-note": "KandoAir 使用兩個視窗：一個用於選單，另一個用於設定。開啟開發者工具可分別檢視這兩個視窗。",
             "menu-window-dev-tools": "檢視選單",
             "settings-window-dev-tools": "檢視設定",
             "invisible-settings-button": "隱藏設定按鈕",
@@ -94,8 +93,8 @@
             "advanced-menu-options": "進階選單選項",
             "transparent-dark": "透明（深色）",
             "minimum-submenu-distance": "最小子選單距離",
-            "learn-how-to-add-sound-themes": "[點此]({{link}})了解如何為 Kando 新增音效主題！",
-            "lazy-initialization-info": "啟用後，選單視窗只會在首次開啟時才建立。這會減慢選單的首次開啟速度，但可避免 Kando 在登入過程中因過早啟動而造成問題。預設為停用。",
+            "learn-how-to-add-sound-themes": "[點此]({{link}})了解如何為 KandoAir 新增音效主題！",
+            "lazy-initialization-info": "啟用後，選單視窗只會在首次開啟時才建立。這會減慢選單的首次開啟速度，但可避免 KandoAir 在登入過程中因過早啟動而造成問題。預設為停用。",
             "move-pointer-to-menu-center-info": "啟用後，滑鼠指標將在必要時被移至選單或子選單的中心。例如，當選單在太靠近螢幕邊緣的位置開啟，或是在置中模式下開啟時，便會觸發此行為。",
             "enable-gamepad-support": "啟用遊戲手把支援",
             "sound-theme": "音效主題",
@@ -112,20 +111,22 @@
             "press-again-behavior-info": "此選項決定當選單已顯示時，再次按下快捷鍵會執行的行為。當有多個選單綁定至同一個快捷鍵時，可透過此功能循環切換所有符合條件的選單。若要將極速模式與「無動作」以外的選項搭配使用，請確保僅按住修飾鍵。",
             "localization-label": "語言",
             "auto-language": "使用系統語言",
-            "localization-info": "需重新啟動 Kando，語言設定才會生效。",
+            "localization-info": "需重新啟動 KandoAir，語言設定才會生效。",
+            "auto-start": "開機自動啟動",
+            "auto-start-info": "登入 Windows 時自動在背景啟動 KandoAir。",
             "app-settings": "應用程式設定",
             "cycle-from-recent": "顯示下一個選單（記住最後）",
             "cycle-from-first": "顯示下一個選單（從頭開始）",
             "keep-input-focus": "保持作用中應用程式的焦點",
             "keep-input-focus-info": "啟用後，選單在開啟時將不會取得鍵盤輸入焦點。可防止選單從作用中的應用程式搶走焦點，但也會停用部分功能，例如「極速模式」以及使用鍵盤選取項目的功能。",
             "hardware-acceleration": "啟用硬體加速",
-            "hardware-acceleration-info": "此選項可提升應用程式的效能，但也可能導致部分顯示異常。需重新啟動 Kando 才會生效。",
+            "hardware-acceleration-info": "此選項可提升應用程式的效能，但也可能導致部分顯示異常。需重新啟動 KandoAir 才會生效。",
             "backup-and-restore": "備份與還原",
             "backup-menus": "備份 menus.json…",
             "backup-settings": "備份 config.json…",
             "restore-menus": "還原 menus.json…",
             "restore-settings": "還原 config.json…",
-            "enable-achievements-info": "啟用後，Kando 將會記錄您的成就進度。",
+            "enable-achievements-info": "啟用後，KandoAir 將會記錄您的成就進度。",
             "enable-achievements": "記錄成就",
             "center": "置中",
             "wlroots-specific-options": "wlroots 後端選項",
@@ -145,9 +146,8 @@
             "max-selection-radius": "最大選取半徑",
             "interaction-modes": "互動模式",
             "input-options": "輸入選項",
-            "learn-interaction-mode": "點擊[此處]({{link}})，深入了解 Kando 的互動模式！",
             "backup-menus-note": "這將備份或還原您的所有選單。包含所有已設定的快捷鍵、選單佈局及收藏夾。",
-            "backup-settings-note": "這將備份或還原 Kando 的設定。包含所有一般設定及選單主題配置。",
+            "backup-settings-note": "這將備份或還原 KandoAir 的設定。包含所有一般設定及選單主題配置。",
             "return-pointer-after-selection-info": "完成選取後，滑鼠指標將會移回原本開啟選單的位置。",
             "return-pointer-after-selection": "選取後指標歸位",
             "settings-dialog-and-tray-icon": "設定對話框與系統匣圖示",
@@ -163,14 +163,14 @@
             "hide-on-focus-out": "失去焦點時隱藏選單"
         },
         "introduction-dialog": {
-            "slide1-title": "Kando 為您提供了一種獨特且高效的方式與電腦互動。",
-            "slide1-text": "滑動瀏覽這些投影片來了解 Kando 能為您做什麼！使用左側的章節標記，可快速跳轉至介紹的特定部分。",
+            "slide1-title": "KandoAir 為您提供了一種獨特且高效的方式與電腦互動。",
+            "slide1-text": "滑動瀏覽這些投影片來了解 KandoAir 能為您做什麼！使用左側的章節標記，可快速跳轉至介紹的特定部分。",
             "slide2-title": "開啟選單！",
-            "slide2-text-standard": "如果您是第一次啟動 Kando，可按下 Ctrl+Space 開啟範例選單。要關閉選單，可按下 Escape 鍵，或在螢幕任意位置點擊滑鼠右鍵。",
-            "slide2-text-no-shortcuts": "如果您是第一次啟動 Kando，[可能需在 Linux 上執行一些額外步驟，才能使全域熱鍵正常工作]({{link}})。設定完成以後，便可透過 Escape 鍵或滑鼠右鍵來關閉選單。",
+            "slide2-text-standard": "如果您是第一次啟動 KandoAir，可按下 Ctrl+Space 開啟範例選單。要關閉選單，可按下 Escape 鍵，或在螢幕任意位置點擊滑鼠右鍵。",
+            "slide2-text-air": "如果您是第一次啟動 KandoAir，可按下 {{shortcut}} 開啟範例選單。要關閉選單，可按下 Escape 鍵，或在螢幕任意位置點擊滑鼠右鍵。",
             "slide3-hint1": "也可點擊此處關閉選單。",
             "slide3-hint2": "點擊此處的任何位置即可選取項目。",
-            "slide3-text": "在 Kando 中，**整個螢幕都是可點擊的目標**！不需瞄準圖示，只需在項目所屬的扇形區域內點擊任何位置即可。這大大提升了選取項目的效率。",
+            "slide3-text": "在 KandoAir 中，**整個螢幕都是可點擊的目標**！不需瞄準圖示，只需在項目所屬的扇形區域內點擊任何位置即可。這大大提升了選取項目的效率。",
             "slide4-text": "子選單**永遠**會在滑鼠指標的位置開啟。**不需等待動畫結束**。相信您的肌肉記憶，直接繼續選取！",
             "slide5-hint": "點擊此處的任何位置即可返回上一層。",
             "slide5-text": "若要**返回**，請點擊上層選單的扇形區域或選單中心。",
@@ -183,15 +183,16 @@
             "slide10-text": "**不需等待動畫結束**！直接畫出 Z 字形在選單中穿梭。這是選取項目最快的方式！",
             "slide11-text": "**別擔心會不小心選錯**！在畫筆模式中，只有在放開滑鼠按鈕時，動作才會被執行；在極速模式中，則是在放開鍵盤按鍵時。善用這點來探索選單吧！",
             "slide12-title": "還有更多！",
-            "slide12-text": "Kando 的可自訂性極高。可用來開啟應用程式、檔案、執行鍵盤巨集及許多其他操作。還能[變更選單樣式]({{link1}})、[新增圖示主題]({{link2}})，甚至在選單中[使用音效]({{link3}})！",
-            "slide13-text": "如果在任何時候需要幫助，歡迎隨時加入我們的 [Discord 伺服器]({{link1}})或查閱[說明文件]({{link2}})！",
+            "slide12-text": "KandoAir 的可自訂性極高。可用來開啟應用程式、檔案、執行鍵盤巨集及許多其他操作。還能[變更選單樣式]({{link1}})、[新增圖示主題]({{link2}})，甚至在選單中[使用音效]({{link3}})！",
             "chapter1": "快速入門",
             "chapter2": "畫筆模式",
             "chapter3": "極速模式",
             "chapter4": "更進一步",
             "chapter5": "取得協助",
-            "title": "歡迎使用 Kando！",
-            "show-again": "再次顯示此對話框"
+            "title": "歡迎使用 KandoAir！",
+            "show-again": "再次顯示此對話框",
+            "slide12-text-air": "KandoAir 可以幫你啟動應用程式、開啟檔案和網頁、按下快捷鍵、執行命令。在主題設定中，你還可以調整選單配色以及深色模式下的外觀。",
+            "slide13-text-air": "你可以隨時點擊選單預覽上方的學士帽按鈕，再次開啟這個教學。大多數設定項旁邊都有資訊圖示，滑鼠停留即可查看說明。"
         },
         "invalid-dropdown-selection": "選擇選項…",
         "menu-themes-dialog": {
@@ -245,12 +246,14 @@
         "no-matching-menus-note": "或許可以試試其他的搜尋關鍵字？",
         "create-menu-button": "新增選單",
         "duplicate-menu": "複製選單",
+        "delete-collection": "刪除收藏夾",
         "delete-menu": "刪除選單",
+        "test-menu": "測試目前選單",
+        "add-to-menu": "新增至目前選單",
         "add-menu-items": "新增選單項目",
         "undo": "還原",
         "redo": "重做",
         "menu-behavior": "選單行為",
-        "menu-behavior-info": "在啟用這些選項前，建議您[點此]({{link}})了解我們為何偏好這些 Kando 的預設行為！",
         "centered-mode": "置中模式",
         "empty-collection": "此收藏夾為空。",
         "empty-collection-note": "編輯上方的標籤，或使用下方的按鈕將一個全新的選單新增至此收藏夾。",
@@ -307,7 +310,7 @@
         "area-condition-info": "僅在指標位於螢幕上指定區域時才顯示此選單。此區域是以像素為單位，相對於主螢幕左上角的座標。若將欄位留空，該方向將不設邊界。",
         "add-menu-item-hint": "將此項目拖曳至上方的選單即可新增！",
         "app-picker": {
-            "hint": "您也可將應用程式從開始選單拖曳至 Kando 的選單編輯器！",
+            "hint": "您也可將應用程式從開始選單拖曳至 KandoAir 的選單編輯器！",
             "search-placeholder": "搜尋應用程式…",
             "use-selected": "使用所選項"
         },
@@ -338,7 +341,7 @@
         "export-menu": "匯出選單",
         "import-menu": "匯入選單",
         "import-menu-error-title": "匯入選單失敗",
-        "import-menu-error-message": "無法匯入所選檔案。該檔案並非自 Kando 匯出的有效選單。",
+        "import-menu-error-message": "無法匯入所選檔案。該檔案並非自 KandoAir 匯出的有效選單。",
         "export-menu-error-title": "匯出選單失敗",
         "quick-select-key-recording": "按下按鍵…",
         "quick-select-key-info": "可透過此按鍵快速選取選單項目。",
@@ -417,7 +420,7 @@
             "tip-2": "若某個按鍵因已被系統使用而無法錄製，請嘗試直接輸入其名稱。"
         },
         "settings": {
-            "tip-1": "此項目類型會開啟 Kando 的設定視窗。"
+            "tip-1": "此項目類型會開啟 KandoAir 的設定視窗。"
         },
         "file": {
             "tip-1": "可使用此項目類型來開啟檔案或資料夾。"
@@ -436,7 +439,7 @@
         "common": {
             "delayed-option": "等待淡出動畫結束",
             "delayed-option-info": "當操作目標為需取得焦點的視窗時，此選項會有所幫助。",
-            "inhibit-shortcuts-info": "當模擬快捷鍵或執行巨集時，停用所有 Kando 快捷鍵。可避免模擬輸入時意外觸發其他選單快捷鍵。",
+            "inhibit-shortcuts-info": "當模擬快捷鍵或執行巨集時，停用所有 KandoAir 快捷鍵。可避免模擬輸入時意外觸發其他選單快捷鍵。",
             "inhibit-shortcuts": "停用快捷鍵"
         }
     },
@@ -456,11 +459,7 @@
         "name": "範例選單",
         "web-links": {
             "submenu": "網頁連結",
-            "google": "Google",
-            "kando-on-github": "Kando 的 GitHub",
-            "kando-on-kofi": "Kando 的 Ko-fi",
-            "kando-on-youtube": "Kando 的 YouTube",
-            "kando-on-discord": "Kando 的 Discord"
+            "google": "Google"
         },
         "next-workspace": "下一個工作區",
         "clipboard": {
@@ -497,7 +496,7 @@
         }
     },
     "main": {
-        "new-version-notification-header": "Kando 的新版本已推出！",
+        "new-version-notification-header": "KandoAir 的新版本已推出！",
         "new-version-notification-body": "請至 {{link}} 取得。",
         "show-settings": "顯示設定",
         "un-inhibit-shortcuts": "重新啟用快捷鍵",
@@ -505,24 +504,36 @@
         "quit": "結束",
         "invalid-link-header": "無效的連結",
         "invalid-link-message": "無法解析此深層連結。",
-        "failed-to-start-header": "Kando 啟動失敗",
-        "no-backend-found": "找不到合適的後端。"
+        "failed-to-start-header": "KandoAir 啟動失敗",
+        "no-backend-found": "找不到合適的後端。",
+        "shortcut-conflict-title": "快捷鍵無法使用",
+        "shortcut-conflict-message": "{{shortcut}} 已被其他程式佔用，請在設定中換一個快捷鍵。",
+        "shortcut-ime-conflict-message": "{{shortcut}} 被輸入法佔用（例如中/英切換），無法用來開啟選單。請在設定中換一個快捷鍵。",
+        "first-start-title": "KandoAir 正在執行",
+        "first-start-message": "按 {{shortcut}} 開啟選單。",
+        "settings-window-title": "KandoAir 設定",
+        "action-failed-title": "動作執行失敗",
+        "path-not-found": "找不到：{{path}}",
+        "command-failed": "命令執行失敗：{{error}}",
+        "target-elevated": "目標視窗以系統管理員身分執行，Windows 會攔截傳送給它的模擬按鍵。",
+        "webview2-missing-title": "需要 WebView2 執行階段",
+        "webview2-missing-message": "KandoAir 需要 Microsoft Edge WebView2 執行階段。請從 https://go.microsoft.com/fwlink/p/?LinkId=2124703 安裝後重新啟動 KandoAir。"
     },
     "backends": {
         "hyprland": {
-            "shortcut-info": "在 Hyprland 上，Kando 無法直接綁定全域快捷鍵。請改為在此處指定一個快捷鍵 ID，並於您的 hyprland.conf 設定檔中，透過類似「bind = CTRL, Space, global, kando:example-menu」的指令綁定選單。請將 example-menu 替換為在此處選擇的 ID。"
+            "shortcut-info": "在 Hyprland 上，KandoAir 無法直接綁定全域快捷鍵。請改為在此處指定一個快捷鍵 ID，並於您的 hyprland.conf 設定檔中，透過類似「bind = CTRL, Space, global, kando:example-menu」的指令綁定選單。請將 example-menu 替換為在此處選擇的 ID。"
         },
         "kde-wayland": {
-            "shortcut-info": "在 KDE / Wayland 上，Kando 無法直接綁定全域快捷鍵。請改為在此處指定一個快捷鍵 ID，並至 KDE 系統設定的全域快捷鍵中，於 KWin 區塊內搜尋此 ID。在該處指派快捷鍵以開啟此選單。"
+            "shortcut-info": "在 KDE / Wayland 上，KandoAir 無法直接綁定全域快捷鍵。請改為在此處指定一個快捷鍵 ID，並至 KDE 系統設定的全域快捷鍵中，於 KWin 區塊內搜尋此 ID。在該處指派快捷鍵以開啟此選單。"
         },
         "gnome": {
-            "error": "無法連線至 Kando 的 GNOME Shell 擴充功能。可從此處取得：{{link}}"
+            "error": "無法連線至 KandoAir 的 GNOME Shell 擴充功能。可從此處取得：{{link}}"
         },
         "niri": {
             "shortcut-info": "Niri 尚不支援全域快捷鍵。但可透過命令列或您的 Niri 設定檔，執行 'kando --menu \"選單名稱\"' 來開啟此選單。"
         },
         "kde": {
-            "error": "無法連線至 Kando 的 KWin 外掛程式，部分功能將無法使用。可從[此處]({{link}})取得。"
+            "error": "無法連線至 KandoAir 的 KWin 外掛程式，部分功能將無法使用。可從[此處]({{link}})取得。"
         }
     },
     "achievements": {
@@ -583,7 +594,7 @@
             "description": "還原備份 {{n}} 次。"
         },
         "added-items": {
-            "name": "Kando 之道 {{tier}}",
+            "name": "KandoAir 之道 {{tier}}",
             "description": "在選單編輯器中建立 {{n}} 個項目。"
         },
         "deleted-all-menus": {
@@ -599,8 +610,8 @@
             "description": "將項目新增至深度達四層的子選單中。"
         },
         "sponsors-viewed": {
-            "name": "Kando 守護者",
-            "description": "考慮成為 Kando 的贊助者。"
+            "name": "KandoAir 守護者",
+            "description": "考慮成為 KandoAir 的贊助者。"
         },
         "menu-themes-selected": {
             "name": "美學之道",
@@ -608,7 +619,7 @@
         },
         "tutorial-viewed": {
             "name": "旅程的起點",
-            "description": "完成 Kando 的導覽教學。"
+            "description": "完成 KandoAir 的導覽教學。"
         },
         "completed-title": "成就已解鎖！",
         "many-selections-streak": {
@@ -632,8 +643,8 @@
             "choose-app": "選擇應用程式…",
             "placeholder": "輸入任何命令…",
             "isolated": "獨立環境執行",
-            "isolated-info": "此選項會將命令在一個純淨的環境中執行，而不繼承 Kando 的任何環境變數。有助於解決無法正常執行命令的問題。",
-            "detached-info": "此選項會將命令與 Kando 分離，使其在 Kando 關閉後仍能繼續執行。停用此選項或可解決某些命令無法正常執行的問題。",
+            "isolated-info": "此選項會將命令在一個純淨的環境中執行，而不繼承 KandoAir 的任何環境變數。有助於解決無法正常執行命令的問題。",
+            "detached-info": "此選項會將命令與 KandoAir 分離，使其在 KandoAir 關閉後仍能繼續執行。停用此選項或可解決某些命令無法正常執行的問題。",
             "detached": "分離模式執行"
         },
         "open-menu": {
@@ -642,7 +653,7 @@
         },
         "open-settings": {
             "name": "開啟設定",
-            "description": "開啟 Kando 的設定視窗。"
+            "description": "開啟 KandoAir 的設定視窗。"
         },
         "open-uri": {
             "name": "開啟 URI",
@@ -654,7 +665,8 @@
             "description": "自動按下組合鍵。若希望執行目標是當前作用中的應用程式而非選單本身，請務必在此動作前加入「關閉選單」動作！",
             "recording-placeholder": "輸入快捷鍵…",
             "hotkey": "快捷鍵",
-            "hotkey-info": "當此項目被選取時，將會觸發此快捷鍵。錄製時，不需一次按下所有按鍵，可一個接一個地按。當快捷鍵已綁定至全域操作時，此功能會有所幫助！"
+            "hotkey-info": "當此項目被選取時，將會觸發此快捷鍵。錄製時，不需一次按下所有按鍵，可一個接一個地按。當快捷鍵已綁定至全域操作時，此功能會有所幫助！",
+            "description-auto-close": "替你按下一組快捷鍵。選單會先關閉，按鍵會傳送到你剛才使用的視窗。"
         },
         "execute-macro": {
             "name": "執行巨集",
@@ -683,12 +695,12 @@
         },
         "inhibit-shortcuts": {
             "name": "暫停快捷鍵",
-            "description": "在此工作流程的執行期間，停用所有的 Kando 快捷鍵。"
+            "description": "在此工作流程的執行期間，停用所有的 KandoAir 快捷鍵。"
         },
         "focus-window": {
             "name": "聚焦視窗",
             "description": "將指定視窗移至前景。在執行快捷鍵或巨集動作前，可使用此動作聚焦至目標應用程式。",
-            "hint": "Kando 將嘗試尋找符合指定標題或應用程式名稱（或兩者皆符合）的視窗。可使用正規表達式進行更強大的匹配，例如 /firefox|chrome/i 以匹配任何網頁瀏覽器。"
+            "hint": "KandoAir 將嘗試尋找符合指定標題或應用程式名稱（或兩者皆符合）的視窗。可使用正規表達式進行更強大的匹配，例如 /firefox|chrome/i 以匹配任何網頁瀏覽器。"
         },
         "send-websocket-message": {
             "name": "傳送 WebSocket 訊息",
@@ -696,6 +708,11 @@
             "url-label": "URL",
             "message-label": "訊息",
             "message-placeholder": "輸入訊息…"
+        },
+        "launch-app": {
+            "name": "啟動應用程式",
+            "description": "啟動已安裝的應用程式或程式。",
+            "placeholder": "選擇應用程式或程式…"
         }
     }
 }

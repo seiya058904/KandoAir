@@ -69,9 +69,16 @@ export default function IconChooserButton(props: Props) {
   const [reloadCount, setReloadCount] = React.useState(0);
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const [filterTerm, setFilterTerm] = React.useState('');
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [theme, setTheme] = React.useState(
     lastIconName === props.icon && lastSelectedTheme ? lastSelectedTheme : props.theme
   );
+
+  React.useEffect(() => {
+    if (isPopoverOpen) {
+      setTimeout(() => searchInputRef.current?.focus(), 0);
+    }
+  }, [isPopoverOpen]);
 
   React.useEffect(() => {
     if (lastIconName === props.icon && lastSelectedTheme) {
@@ -154,6 +161,7 @@ export default function IconChooserButton(props: Props) {
             {pickerInfo.type === 'list' && (
               <div className={classes.searchInput}>
                 <input
+                  ref={searchInputRef}
                   placeholder={i18next.t(
                     'settings.icon-picker-dialog.search-placeholder'
                   )}
@@ -174,12 +182,11 @@ export default function IconChooserButton(props: Props) {
             )}
           </div>
           {getPicker()}
-          <Note useMarkdown marginTop={10}>
-            {pickerInfo.hint ||
-              i18next.t('settings.icon-picker-dialog.hint', {
-                link: 'https://kando.menu/icon-themes/',
-              })}
-          </Note>
+          {pickerInfo.hint ? (
+            <Note useMarkdown marginTop={10}>
+              {pickerInfo.hint}
+            </Note>
+          ) : null}
         </div>
       }
       isVisible={isPopoverOpen}

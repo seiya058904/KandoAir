@@ -60,9 +60,10 @@ export class CenterText {
 
   /**
    * This is used to cache the text elements so that we do not need to create new elements
-   * every time the text changes.
+   * every time the text changes. Bounded to avoid unbounded detached DOM retention.
    */
-  private cache: { [key: string]: HTMLDivElement } = {};
+  private cache: Map<string, HTMLDivElement> = new Map();
+  private static readonly maxCacheEntries = 100;
 
   /**
    * @param container The parent element of the text element.
@@ -82,8 +83,9 @@ export class CenterText {
   public setDiameter(diameter: number) {
     this.diameter = diameter;
 
-    // Clear the cache, as the cached text elements have the wrong size for the new diameter.
-    this.cache = {};
+    // Reset cached font size and DOM nodes because a new menu theme may change font-size.
+    this.maxFontSize = -1;
+    this.cache.clear();
   }
 
   /** Removes the current text from the container. */
@@ -112,9 +114,10 @@ export class CenterText {
     const key = text + (quickSelectKey ?? '');
 
     // If the text is already cached, we can use it directly.
-    if (this.cache[key]) {
+    const cached = this.cache.get(key);
+    if (cached) {
       this.div?.remove();
-      this.div = this.cache[key];
+      this.div = cached;
       this.div.style.transform = `translate(${position.x}px, ${position.y}px)`;
       this.div.style.visibility = 'initial';
       this.container.appendChild(this.div);
@@ -167,11 +170,19 @@ export class CenterText {
     // the circle. Else, only one letter would fit into the first line.
     p.style.marginTop = `${fontSize * 0.5}px`;
     let textHeight = await this.getDivHeight(p);
+    if (currentCallCount !== this.callCount) {
+      stagingDiv.remove();
+      return;
+    }
 
     while (textHeight > this.diameter && fontSize > minFontSize) {
       fontSize = fontSize - 1;
       p.style.fontSize = `${fontSize}px`;
       textHeight = await this.getDivHeight(p);
+      if (currentCallCount !== this.callCount) {
+        stagingDiv.remove();
+        return;
+      }
     }
 
     // If the text height is still larger than the diameter, reducing the font size did
@@ -179,6 +190,10 @@ export class CenterText {
     if (textHeight > this.diameter) {
       p.style.wordBreak = 'break-all';
       textHeight = await this.getDivHeight(p);
+      if (currentCallCount !== this.callCount) {
+        stagingDiv.remove();
+        return;
+      }
     }
 
     // Now adjust the top margin of the text so that it is vertically centered in the
@@ -194,6 +209,10 @@ export class CenterText {
       for (let i = 0; i < 10; i++) {
         p.style.marginTop = `${(this.diameter - textHeight) / 2}px`;
         textHeight = await this.getDivHeight(p);
+        if (currentCallCount !== this.callCount) {
+          stagingDiv.remove();
+          return;
+        }
 
         // If the text height increased, we got into a tricky situation where the text is
         // hard to center. With the previous padding, fewer lines where used, so the text
@@ -206,6 +225,10 @@ export class CenterText {
             fontSize = fontSize - 1;
             p.style.fontSize = `${fontSize}px`;
             textHeight = await this.getDivHeight(p);
+            if (currentCallCount !== this.callCount) {
+              stagingDiv.remove();
+              return;
+            }
           }
 
           break;
@@ -220,8 +243,14 @@ export class CenterText {
       }
     }
 
-    // Cache the text element for future use.
-    this.cache[key] = stagingDiv;
+    // Cache the text element for future use (FIFO/LRU-bounded).
+    if (this.cache.size >= CenterText.maxCacheEntries) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.cache.delete(oldestKey);
+      }
+    }
+    this.cache.set(key, stagingDiv);
 
     // If no new layout computation was started while the current one was still in
     // progress, we can use the staging div as the new text element. Otherwise, we

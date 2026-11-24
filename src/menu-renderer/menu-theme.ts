@@ -40,6 +40,15 @@ export class MenuTheme {
   private description: MenuThemeDescription;
 
   /**
+   * Tracks CSS color variables set on documentElement so switching themes clears old
+   * ones.
+   */
+  private appliedColorVars: string[] = [];
+
+  /** Incremented on each theme load to bypass WebView2 stylesheet caching on reload. */
+  private loadGeneration = 0;
+
+  /**
    * Creates a new MenuTheme. This will register the custom CSS properties used by the
    * theme. These properties may change each frame, which is very expensive if the values
    * are inherited. Therefore, we register them as custom properties which are not
@@ -135,6 +144,12 @@ export class MenuTheme {
   public loadDescription(description: MenuThemeDescription) {
     this.description = description;
 
+    // Clear any inline color overrides from the previously active theme.
+    for (const varName of this.appliedColorVars) {
+      document.documentElement.style.removeProperty(varName);
+    }
+    this.appliedColorVars = [];
+
     // Remove any old theme first.
     const oldTheme = document.getElementById('kando-menu-theme');
     if (oldTheme) {
@@ -142,27 +157,30 @@ export class MenuTheme {
     }
 
     // Then add the new theme.
+    this.loadGeneration += 1;
     const head = document.head;
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'file://' + description.directory + '/' + description.id + '/theme.css';
+    link.href = `${description.directory}/${encodeURIComponent(description.id)}/theme.css?v=${this.loadGeneration}`;
     link.type = 'text/css';
     link.id = 'kando-menu-theme';
     head.appendChild(link);
 
     // Register the colors as CSS properties.
     Object.entries(this.description.colors).forEach(([name, color]) => {
+      const varName = `--${name}`;
       // Try to register the property. If this fails, we had registered it before and
       // can just set the value.
       try {
         CSS.registerProperty({
-          name: `--${name}`,
+          name: varName,
           syntax: '<color>',
           inherits: true,
           initialValue: color,
         });
-      } catch (e) {
-        document.documentElement.style.setProperty(`--${name}`, color);
+      } catch {
+        document.documentElement.style.setProperty(varName, color);
+        this.appliedColorVars.push(varName);
       }
     });
   }
@@ -234,7 +252,11 @@ export class MenuTheme {
   /** Sets the colors defined in the theme description as CSS properties. */
   public setColors(colors: Record<string, string>) {
     Object.entries(colors).forEach(([name, color]) => {
-      document.documentElement.style.setProperty(`--${name}`, color);
+      const varName = `--${name}`;
+      document.documentElement.style.setProperty(varName, color);
+      if (!this.appliedColorVars.includes(varName)) {
+        this.appliedColorVars.push(varName);
+      }
     });
   }
 
@@ -281,16 +303,19 @@ export class MenuTheme {
       hoverAngle = getClosestEquivalentAngle(hoverAngle, pointerAngle);
     }
 
-    this.description.layers.forEach((layer) => {
-      const div = item.renderData.nodeDiv.querySelector(
-        `:scope > .${layer.class}`
-      ) as HTMLElement;
-
-      // Sanity check.
-      if (!div) {
-        return;
+    if (!item.renderData.layerDivs) {
+      item.renderData.layerDivs = [];
+      for (const layer of this.description.layers) {
+        const div = item.renderData.nodeDiv.querySelector(
+          `:scope > .${layer.class}`
+        ) as HTMLElement | null;
+        if (div) {
+          item.renderData.layerDivs.push(div);
+        }
       }
+    }
 
+    for (const div of item.renderData.layerDivs) {
       if (pointerAngle != null) {
         div.style.setProperty('--pointer-angle', pointerAngle + 'deg');
       }
@@ -302,12 +327,7 @@ export class MenuTheme {
           div.style.setProperty('--hovered-child-angle', hoverAngle + 'deg');
         }
       }
-    });
-
-    // Unset the parent-wedge angles for the center item. This ensures that the property
-    // is removed when navigating back.
-    item.renderData.nodeDiv.style.removeProperty('--parent-start-angle');
-    item.renderData.nodeDiv.style.removeProperty('--parent-end-angle');
+    }
 
     if (pointerAngle != null) {
       item.renderData.lastPointerAngle = pointerAngle;
@@ -429,8 +449,26 @@ export class MenuTheme {
    *   string.
    */
   public static underlineQuickSelectKey(name: string, quickSelectKey: string): string {
-    const escapedSelectKey = quickSelectKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedSelectKey})`, 'i');
-    return name.replace(regex, '<u>$1</u>');
+    const escapeHtml = (value: string) =>
+      value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    if (!quickSelectKey) {
+      return escapeHtml(name);
+    }
+
+    const index = name.toLocaleLowerCase().indexOf(quickSelectKey.toLocaleLowerCase());
+    if (index === -1) {
+      return escapeHtml(name);
+    }
+
+    const before = name.slice(0, index);
+    const match = name.slice(index, index + quickSelectKey.length);
+    const after = name.slice(index + quickSelectKey.length);
+    return `${escapeHtml(before)}<u>${escapeHtml(match)}</u>${escapeHtml(after)}`;
   }
 }

@@ -1,0 +1,53 @@
+//////////////////////////////////////////////////////////////////////////////////////////
+//   _  _ ____ _  _ ___  ____                                                           //
+//   |_/  |__| |\ | |  \ |  |    This file belongs to KandoAir, a lightweight Windows   //
+//   | \_ |  | | \| |__/ |__|    port of Kando. Read more on github.com/kando-menu/kando //
+//                                                                                      //
+//////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: KandoAir contributors
+// SPDX-License-Identifier: MIT
+
+// Mimics the native caption buttons which Electron's title bar overlay draws for Kando
+// (36 px high, transparent background, gray symbols).
+.windowControls {
+  position: fixed;
+  top: 0;
+  right: 0;
+  display: flex;
+  height: 36px;
+  z-index: 10000;
+  -webkit-app-region: no-drag;
+}
+
+.button {
+  width: 46px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: #888;
+  font-family: 'Segoe Fluent Icons', 'Segoe MDL2 Assets';
+  font-size: 10px;
+  line-height: 36px;
+  padding: 0;
+  cursor: default;
+  outline: none;
+
+  &:hover {
+    background-color: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.08));
+  }
+
+  &:active {
+    background-color: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.05));
+  }
+
+  &.close:hover {
+    background-color: #c42b1c;
+    color: white;
+  }
+
+  &.close:active {
+    background-color: #c84031;
+    color: rgba(255, 255, 255, 0.8);
+  }
+}

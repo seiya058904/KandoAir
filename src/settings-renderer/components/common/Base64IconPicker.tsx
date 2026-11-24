@@ -8,6 +8,7 @@
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
 // SPDX-License-Identifier: MIT
 
+import { toLoadableUrl } from '../../../common/icon-themes/local-file-url';
 import React from 'react';
 import i18next from 'i18next';
 
@@ -32,11 +33,12 @@ type Props = {
  */
 export default function Base64IconPicker(props: Props) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const requestIdRef = React.useRef(0);
   const [value, setValue] = React.useState('');
 
   const isValidBase64Image = async (base64: string) => {
     const img = new Image();
-    img.src = base64;
+    img.src = toLoadableUrl(base64);
     const valid = await new Promise((resolve) => {
       img.onload = () => resolve(true);
       img.onerror = () => resolve(false);
@@ -48,17 +50,25 @@ export default function Base64IconPicker(props: Props) {
   // Update the value when the initialValue prop changes. This is necessary because the
   // initialValue prop might change after the component has been initialized.
   React.useEffect(() => {
+    let cancelled = false;
     isValidBase64Image(props.initialValue).then((valid) => {
-      if (valid) {
+      if (!cancelled && valid) {
         setValue(props.initialValue);
       }
     });
+    return () => {
+      cancelled = true;
+    };
   }, [props.initialValue]);
 
   const onChange = (text: string) => {
     setValue(text);
+    const requestId = ++requestIdRef.current;
 
     isValidBase64Image(text).then((valid) => {
+      if (requestId !== requestIdRef.current || !textareaRef.current) {
+        return;
+      }
       if (valid) {
         textareaRef.current.classList.remove(classes.invalid);
         props.onChange?.(text);

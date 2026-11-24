@@ -15,7 +15,7 @@ import * as classes from './PreviewFooter.module.scss';
 
 import FooterButton from './FooterButton';
 
-import { ActionTypeRegistry } from '../../../common';
+import { ActionTypeRegistry, ACTION_TYPES } from '../../../common';
 import { useAppState, useMenuSettings } from '../../state';
 
 /**
@@ -31,9 +31,7 @@ export default function PreviewFooter() {
   const dragDepth = React.useRef(0);
 
   const allMetadata = ActionTypeRegistry.getInstance().getAllMetadata();
-  const workflowItemTypes = (
-    Object.keys(allMetadata) as Array<keyof typeof allMetadata>
-  ).map((key) => ({
+  const workflowItemTypes = ACTION_TYPES.map((key) => ({
     key,
     ...allMetadata[key],
   }));
@@ -50,15 +48,7 @@ export default function PreviewFooter() {
       iconTheme: 'kando',
       description: i18next.t('menu-items.submenu.description'),
     },
-    ...workflowItemTypes.filter(
-      (type) =>
-        type.key !== 'delay' &&
-        type.key !== 'close-menu' &&
-        type.key !== 'close-submenu' &&
-        type.key !== 'send-websocket-message' &&
-        type.key !== 'focus-window' &&
-        type.key !== 'inhibit-shortcuts'
-    ),
+    ...workflowItemTypes,
   ];
 
   return (

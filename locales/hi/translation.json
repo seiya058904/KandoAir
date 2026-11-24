@@ -14,8 +14,7 @@
             "file-example": "फाइल: URI उदाहरण:",
             "url-example": "URL उदाहरण:",
             "reload-button-tooltip": "सभी आइकॉन थीम्स को रीलोड करें",
-            "search-placeholder": "आइकॉनस ढूंढे…",
-            "hint": "अपनी खुद की आइकॉन थीम्स बनाना यहाँ [सीखें]({{link}})।"
+            "search-placeholder": "आइकॉनस ढूंढे…"
         }
     }
 }

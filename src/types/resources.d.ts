@@ -4,7 +4,7 @@ export default interface Resources {
       "achievements": {
           "added-items": {
               "description": "Create {{n}} items in the menu editor.",
-              "name": "Way of Kando {{tier}}"
+              "name": "Way of KandoAir {{tier}}"
           },
           "attributes": {
               "capable": "Capable",
@@ -81,8 +81,8 @@ export default interface Resources {
               "name": "Faster than Thought {{tier}}"
           },
           "sponsors-viewed": {
-              "description": "Consider becoming a sponsor of Kando.",
-              "name": "Guardian of Kando"
+              "description": "Consider becoming a sponsor of KandoAir.",
+              "name": "Guardian of KandoAir"
           },
           "tier": {
               "I": "I",
@@ -92,22 +92,22 @@ export default interface Resources {
               "V": "V"
           },
           "tutorial-viewed": {
-              "description": "Complete the Kando introduction tutorial.",
+              "description": "Complete the KandoAir introduction tutorial.",
               "name": "The Journey Begins"
           }
       },
       "backends": {
           "gnome": {
-              "error": "Could not connect to GNOME Shell Kando extension. You can get it from here: {{link}}"
+              "error": "Could not connect to GNOME Shell KandoAir extension. You can get it from here: {{link}}"
           },
           "hyprland": {
-              "shortcut-info": "Kando cannot directly bind global shortcuts on Hyprland. Instead, specify a shortcut ID here and bind a shortcut in your hyprland.conf with something like \"bind = CTRL, Space, global, kando:example-menu\". Replace example-menu with the ID chosen here."
+              "shortcut-info": "KandoAir cannot directly bind global shortcuts on Hyprland. Instead, specify a shortcut ID here and bind a shortcut in your hyprland.conf with something like \"bind = CTRL, Space, global, kando:example-menu\". Replace example-menu with the ID chosen here."
           },
           "kde": {
-              "error": "Could not connect to KWin Kando plugin. Some functionality will not be available. You can get it from [here]({{link}})."
+              "error": "Could not connect to KWin KandoAir plugin. Some functionality will not be available. You can get it from [here]({{link}})."
           },
           "kde-wayland": {
-              "shortcut-info": "Kando cannot directly bind global shortcuts on KDE/Wayland. Instead, specify a shortcut ID here and then search for it in the KWin section of the global shortcuts in your KDE's system settings. There you can assign the shortcut which will open this menu."
+              "shortcut-info": "KandoAir cannot directly bind global shortcuts on KDE/Wayland. Instead, specify a shortcut ID here and then search for it in the KWin section of the global shortcuts in your KDE's system settings. There you can assign the shortcut which will open this menu."
           },
           "niri": {
               "shortcut-info": "Niri does not yet support global shortcuts. But you can open this menu using 'kando --menu \"Menu Name\"' from the command line or from your niri config."
@@ -154,10 +154,6 @@ export default interface Resources {
           "previous-workspace": "Previous Workspace",
           "web-links": {
               "google": "Google",
-              "kando-on-discord": "Kando on Discord",
-              "kando-on-github": "Kando on GitHub",
-              "kando-on-kofi": "Kando on Ko-fi",
-              "kando-on-youtube": "Kando on YouTube",
               "submenu": "Web Links"
           },
           "windows": {
@@ -170,14 +166,26 @@ export default interface Resources {
           }
       },
       "main": {
+          "action-failed-title": "Action failed",
+          "command-failed": "The command failed: {{error}}",
+          "first-start-message": "Press {{shortcut}} to open the menu.",
+          "first-start-title": "KandoAir is running",
           "inhibit-shortcuts": "Temporarily disable all shortcuts",
           "invalid-link-header": "Invalid link",
           "invalid-link-message": "The deep link could not be parsed.",
           "new-version-notification-body": "Get it from {{link}}.",
-          "new-version-notification-header": "A new version of Kando is available!",
+          "new-version-notification-header": "A new version of KandoAir is available!",
+          "path-not-found": "Not found: {{path}}",
           "quit": "Quit",
+          "settings-window-title": "KandoAir Settings",
+          "shortcut-conflict-message": "{{shortcut}} is already used by another program. Choose a different shortcut in the settings.",
+          "shortcut-conflict-title": "Shortcut unavailable",
+          "shortcut-ime-conflict-message": "{{shortcut}} is used by your input method (for example to switch between Chinese and English), so it cannot open the menu. Choose a different shortcut in the settings.",
           "show-settings": "Show settings",
-          "un-inhibit-shortcuts": "Re-enable shortcuts"
+          "target-elevated": "The target window runs as administrator. Windows blocks simulated keys to it.",
+          "un-inhibit-shortcuts": "Re-enable shortcuts",
+          "webview2-missing-message": "KandoAir needs the Microsoft Edge WebView2 Runtime. Install it from https://go.microsoft.com/fwlink/p/?LinkId=2124703 and start KandoAir again.",
+          "webview2-missing-title": "WebView2 Runtime required"
       },
       "menu-actions": {
           "close-menu": {
@@ -198,9 +206,9 @@ export default interface Resources {
               "choose-app": "Choose an app…",
               "description": "Launches apps or runs scripts.",
               "detached": "Run detached",
-              "detached-info": "This will disconnect the command from Kando, so it will continue to run even if Kando is closed. Disabling this may resolve issues with commands that do not start properly.",
+              "detached-info": "This will disconnect the command from KandoAir, so it will continue to run even if KandoAir is closed. Disabling this may resolve issues with commands that do not start properly.",
               "isolated": "Run isolated",
-              "isolated-info": "This will run the command in a clean environment, meaning that it will not inherit any environment variables from Kando. This can help with commands that do not start properly.",
+              "isolated-info": "This will run the command in a clean environment, meaning that it will not inherit any environment variables from KandoAir. This can help with commands that do not start properly.",
               "name": "Execute Command",
               "placeholder": "Insert any command…"
           },
@@ -212,12 +220,17 @@ export default interface Resources {
           },
           "focus-window": {
               "description": "Brings the specified window to the foreground. You can use this to focus the target application before executing a hotkey or macro action.",
-              "hint": "Kando will try to find a window which matches the given title or application name (or both). You can use regexes for more powerful matching, for example /firefox|chrome/i to match any web browser.",
+              "hint": "KandoAir will try to find a window which matches the given title or application name (or both). You can use regexes for more powerful matching, for example /firefox|chrome/i to match any web browser.",
               "name": "Focus Window"
           },
           "inhibit-shortcuts": {
-              "description": "Disables all Kando shortcuts for the remainder of this workflow's execution.",
+              "description": "Disables all KandoAir shortcuts for the remainder of this workflow's execution.",
               "name": "Inhibit Shortcuts"
+          },
+          "launch-app": {
+              "description": "Starts an installed app or program.",
+              "name": "Launch App",
+              "placeholder": "Choose an app or program…"
           },
           "open-file": {
               "description": "Opens a file or folder.",
@@ -225,11 +238,11 @@ export default interface Resources {
               "placeholder": "Choose a file or folder…"
           },
           "open-menu": {
-              "description": "Opens another Kando menu.",
+              "description": "Opens another KandoAir menu.",
               "name": "Open Menu"
           },
           "open-settings": {
-              "description": "Opens the Kando settings window.",
+              "description": "Opens the KandoAir settings window.",
               "name": "Open Settings"
           },
           "open-uri": {
@@ -251,6 +264,7 @@ export default interface Resources {
           },
           "simulate-hotkey": {
               "description": "Presses a key combination for you. Make sure to add a close-menu action before this if you want the shortcut to target the active application and not the menu!",
+              "description-auto-close": "Presses a key combination for you. The menu closes first, so the keys go to the window you were using.",
               "hotkey": "Hotkey",
               "hotkey-info": "This hotkey will be triggered when the item is selected. When recording, you do not have to press all keys at once, you can also press them one after another. This is useful if a hotkey is already bound to some global action!",
               "name": "Simulate Hotkey",
@@ -268,11 +282,11 @@ export default interface Resources {
               "check-latest-release": "Check latest release",
               "chrome-version": "Chrome Version",
               "electron-version": "Electron Version",
-              "kando-backend": "Kando Backend",
-              "kando-version": "Kando Version",
-              "message": "I am creating Kando out of sheer passion. If you enjoy using it as much as I love creating it, you can [buy me a coffee]({{link}})!\n\n💖 Simon",
+              "kando-backend": "KandoAir Backend",
+              "kando-version": "KandoAir Version",
+              "message-air": "KandoAir is a lightweight edition for Windows, based on [Kando]({{link}}) by Simon Schneegans and released under the MIT license.",
               "read-release-notes": "Read release notes",
-              "title": "About Kando"
+              "title": "About KandoAir"
           },
           "achievements-dialog": {
               "completed-button": "Completed",
@@ -290,6 +304,7 @@ export default interface Resources {
           "add-menu-item-hint": "Drag this item to add it to the menu above!",
           "add-menu-items": "Add Menu Items",
           "add-tags-placeholder": "Add tags…",
+          "add-to-menu": "Add to menu",
           "all-menus": "All Menus",
           "anchored-mode": "Anchored Mode",
           "anchored-mode-info": "Open submenus at the same position as the parent menu. Checking this, will disable Marking Mode and Turbo Mode.",
@@ -298,7 +313,7 @@ export default interface Resources {
           "app-condition-placeholder": "App name",
           "app-condition-tooltip": "Select an app",
           "app-picker": {
-              "hint": "You can also drag and drop an app from your start menu to Kando's menu editor!",
+              "hint": "You can also drag and drop an app from your start menu to KandoAir's menu editor!",
               "search-placeholder": "Search for an app…",
               "use-selected": "Use selected"
           },
@@ -311,6 +326,7 @@ export default interface Resources {
           "area-condition-top-placeholder": "Top",
           "cancel": "Cancel",
           "create-menu-button": "Add Menu",
+          "delete-collection": "Delete collection",
           "delete-menu": "Delete menu",
           "delete-menu-item": "Delete menu item",
           "drop-here-to-delete": "Drop here to delete",
@@ -345,11 +361,13 @@ export default interface Resources {
               "advanced-menu-options-note": "Usually, you can leave these settings at their default values.",
               "app-settings": "Application Settings",
               "auto-language": "Use system language",
+              "auto-start": "Start with Windows",
+              "auto-start-info": "Automatically launch KandoAir in the background when you sign in to Windows.",
               "backup-and-restore": "Backup & Restore",
               "backup-menus": "Backup menus.json…",
               "backup-menus-note": "This will backup or restore all your menus at once. This includes all your configured shortcuts, menu layouts, and your menu collections.",
               "backup-settings": "Backup config.json…",
-              "backup-settings-note": "This will backup or restore Kando's settings, which include all your general settings and your menu-theme configuration.",
+              "backup-settings-note": "This will backup or restore KandoAir's settings, which include all your general settings and your menu-theme configuration.",
               "black": "Black",
               "bottom-left": "Bottom Left",
               "bottom-right": "Bottom Right",
@@ -357,19 +375,19 @@ export default interface Resources {
               "center-click-zone-radius": "Center click zone radius",
               "center-click-zone-radius-info": "The size of the area in the middle of the menu which will either close or navigate a level up when clicked. Default is 50px.",
               "check-for-new-versions": "Check for new versions",
-              "check-for-new-versions-info": "If enabled, Kando will show a notification when a new version is available.",
+              "check-for-new-versions-info": "If enabled, KandoAir will show a notification when a new version is available.",
               "close-menu": "Close menu",
               "color": "Color",
               "cycle-from-first": "Show next menu (begin at first)",
               "cycle-from-recent": "Show next menu (continue from last)",
               "dark": "Dark",
-              "dev-tools-note": "Kando uses two windows: One for the menu and one for the settings. You can open the development tools to inspect both windows separately.",
+              "dev-tools-note": "KandoAir uses two windows: One for the menu and one for the settings. You can open the development tools to inspect both windows separately.",
               "developer-options": "Developer Options",
               "do-nothing": "Do nothing",
               "enable-achievement-notifications": "Show achievement notifications",
               "enable-achievement-notifications-info": "If enabled, notifications are shown when achievements are unlocked.",
               "enable-achievements": "Track achievements",
-              "enable-achievements-info": "If enabled, Kando will track your progress towards achievements.",
+              "enable-achievements-info": "If enabled, KandoAir will track your progress towards achievements.",
               "enable-gamepad-support": "Enable gamepad support",
               "enable-gamepad-support-info": "If checked, you can use a connected gamepad to control the menu.",
               "enable-marking-mode": "Enable Marking Mode",
@@ -384,7 +402,7 @@ export default interface Resources {
               "gesture-pause-timeout": "Gesture Pause Timeout",
               "gesture-pause-timeout-info": "Stop your gesture for this long to trigger a selection. Default is 100ms.",
               "hardware-acceleration": "Enable hardware acceleration",
-              "hardware-acceleration-info": "This option can boost the performance of the app, but can also lead to some rendering artifacts. You have to restart Kando to apply this setting.",
+              "hardware-acceleration-info": "This option can boost the performance of the app, but can also lead to some rendering artifacts. You have to restart KandoAir to apply this setting.",
               "hidden": "Hidden",
               "hide-on-focus-out": "Hide menu when focus is lost",
               "hide-on-focus-out-info": "The menu will be hidden when you switch focus to another application.",
@@ -396,18 +414,17 @@ export default interface Resources {
               "keep-input-focus-info": "If enabled, the menu will not receive keyboard input focus when opened. This will prevent the menu from stealing focus from the active application, yet it will disable some features such as Turbo Mode and the ability to use the keyboard to select items.",
               "keep-input-focus-warning": "This disables some features such as Turbo Mode and the ability to use the keyboard to select items. Activate this only if you know what you are doing!",
               "lazy-initialization": "Lazy initialization",
-              "lazy-initialization-info": "If enabled, the menu window will only be created when the menu is opened for the first time. This will make the first opening of the menu a bit slower, but it may prevent issues when Kando is started too soon during login. Default is disabled.",
-              "learn-how-to-add-sound-themes": "Learn how to add new sound themes to Kando [here]({{link}})!",
-              "learn-interaction-mode": "Learn more about Kando's interaction modes [here]({{link}})!",
+              "lazy-initialization-info": "If enabled, the menu window will only be created when the menu is opened for the first time. This will make the first opening of the menu a bit slower, but it may prevent issues when KandoAir is started too soon during login. Default is disabled.",
+              "learn-how-to-add-sound-themes": "Learn how to add new sound themes to KandoAir [here]({{link}})!",
               "light": "Light",
-              "localization-info": "Restart Kando to apply the new language.",
+              "localization-info": "Restart KandoAir to apply the new language.",
               "localization-label": "Language",
               "max-selection-radius": "Maximum selection radius",
               "max-selection-radius-info": "If set to a value greater than 0, clicks outside of this radius will close the menu. Default is 0, which means there is no maximum selection radius.",
               "menu-behavior": "Menu Behavior",
               "menu-sounds": "Menu Sounds",
               "menu-window-dev-tools": "Inspect menu",
-              "message": "All your menus and Kando's settings are stored in two JSON files which you can also edit, share, or backup. Click [here]({{link}}) to open the directory where the files are stored.",
+              "message": "All your menus and KandoAir's settings are stored in two JSON files which you can also edit, share, or backup. Click [here]({{link}}) to open the directory where the files are stored.",
               "minimum-gesture-angle": "Minimum Gesture Angle",
               "minimum-gesture-angle-info": "Smaller deviations from straight movements will not trigger selections. Default is 20°.",
               "minimum-gesture-length": "Minimum Gesture Length",
@@ -480,13 +497,12 @@ export default interface Resources {
               "base64-example": "Base64 example:",
               "base64-hint": "Base64 encoded icons provide an easy way to include any kind of icon into your menus. You can use a service like [www.base64-image.de]({{link}}) to convert any image into a base64 encoded string. This even works for animated gifs!",
               "file-example": "file: URI example:",
-              "hint": "Learn [here]({{link}}) how to add or create your own icon themes.",
               "reload-button-tooltip": "Reload all icon themes",
               "search-placeholder": "Search icons…",
               "url-example": "URL example:"
           },
           "import-menu": "Import menu",
-          "import-menu-error-message": "The selected file could not be imported. It does not contain a valid Kando exported menu.",
+          "import-menu-error-message": "The selected file could not be imported. It does not contain a valid KandoAir exported menu.",
           "import-menu-error-title": "Failed to import menu",
           "introduction-dialog": {
               "chapter1": "Getting Started",
@@ -495,19 +511,20 @@ export default interface Resources {
               "chapter4": "Next Steps",
               "chapter5": "Getting Help",
               "show-again": "Show this dialog again",
-              "slide1-text": "Swipe through these slides to learn what Kando can do for you! You can use the chapter marks on the left to quickly jump to a specific part of the introduction.",
-              "slide1-title": "Kando offers a unique and efficient way for interacting with your computer.",
+              "slide1-text": "Swipe through these slides to learn what KandoAir can do for you! You can use the chapter marks on the left to quickly jump to a specific part of the introduction.",
+              "slide1-title": "KandoAir offers a unique and efficient way for interacting with your computer.",
               "slide10-text": "**Do not wait for the animations to finish!** Just zigzag your way through the menu. This is the fastest way to select items!",
               "slide11-text": "**Don't be afraid of accidental selections!** Actions are only executed as soon as you release your mouse button in Marking Mode or a keyboard key in Turbo Mode. Use this to explore the menu!",
-              "slide12-text": "Kando is highly customizable. You can use it to open applications, files, execute keyboard macros, and many other things. You can [change the menu style]({{link1}}), [add icon themes]({{link2}}) and even [use sounds]({{link3}}) in your menus!",
+              "slide12-text": "KandoAir is highly customizable. You can use it to open applications, files, execute keyboard macros, and many other things. You can [change the menu style]({{link1}}), [add icon themes]({{link2}}) and even [use sounds]({{link3}}) in your menus!",
+              "slide12-text-air": "KandoAir can launch apps, open files and websites, press shortcuts, and run commands for you. In the theme settings, you can change the menu colors and its look in dark mode.",
               "slide12-title": "There is more!",
-              "slide13-text": "If you need help at any point, feel free to join our [Discord Server]({{link1}}) or check out the [documentation]({{link2}})!",
-              "slide2-text-no-shortcuts": "If you launched Kando for the first time, you [may need to perform some additional steps on Linux to get the global hotkeys working]({{link}}). Once this is working, you can close a menu with the Escape key or with your right mouse button.",
-              "slide2-text-standard": "If you launched Kando for the first time, you can open the example menu with Ctrl+Space. Close it again with the Escape key or with your right mouse button anywhere on the screen.",
+              "slide13-text-air": "You can open this introduction again at any time with the graduation cap button above the menu preview. Most settings have an info icon which explains what they do.",
+              "slide2-text-air": "If you launched KandoAir for the first time, you can open the example menu with {{shortcut}}. Close it again with the Escape key or with your right mouse button anywhere on the screen.",
+              "slide2-text-standard": "If you launched KandoAir for the first time, you can open the example menu with Ctrl+Space. Close it again with the Escape key or with your right mouse button anywhere on the screen.",
               "slide2-title": "Open the menu!",
               "slide3-hint1": "You can also click here to close the menu.",
               "slide3-hint2": "Click anywhere here to select the item.",
-              "slide3-text": "In Kando, **your entire screen is a click-target**! You do not have to aim for the icons, you can click anywhere in an item's wedge. This makes it much more efficient to select items.",
+              "slide3-text": "In KandoAir, **your entire screen is a click-target**! You do not have to aim for the icons, you can click anywhere in an item's wedge. This makes it much more efficient to select items.",
               "slide4-text": "A submenu will **always** open at your mouse pointer. You **do not need to wait for the animation to finish**. Trust your muscle memory and proceed with your selection!",
               "slide5-hint": "Click anywhere here to go up one level.",
               "slide5-text": "To **navigate back**, either click in the parent's wedge or in the center of the menu.",
@@ -517,11 +534,10 @@ export default interface Resources {
               "slide8-text": "**The menu reacts to your mouse movements!** A submenu opens when you want it to open. With some practice, you will be able to select items without even looking at the menu.",
               "slide9-text": "If you **keep a key pressed** (such as _Ctrl_, _Shift_, or _Alt_) after opening the menu, you can perform selections by just moving the pointer. No clicking or dragging is necessary.",
               "slide9-title": "Be lightning fast: Turbo Mode",
-              "title": "Welcome to Kando!"
+              "title": "Welcome to KandoAir!"
           },
           "invalid-dropdown-selection": "Select an option…",
           "menu-behavior": "Menu Behavior",
-          "menu-behavior-info": "Before you enable these options, we recommend learning why we like Kando's default behavior [here]({{link}})!",
           "menu-conditions": "Menu Conditions",
           "menu-conditions-info": "You can bind multiple menus to the same shortcut and then choose under which conditions each menu should be shown.",
           "menu-themes-dialog": {
@@ -603,6 +619,7 @@ export default interface Resources {
           "shortcut-recording": "Press a shortcut…",
           "tags": "Tags",
           "tags-info": "Tags can be used to group menus in menu collections.",
+          "test-menu": "Test menu",
           "undo": "Undo",
           "window-condition": "Limit to Specific Window Titles",
           "window-condition-info": "Show the menu only if the focused window's title contains a given text. This supports regex like /youtube|vimeo/i.",

@@ -11,6 +11,7 @@
 import { expect } from 'chai';
 
 import { formatShortcutForDisplay } from '../src/common';
+import KeyMapper from '../src/common/key-mapper';
 
 describe('formatShortcutForDisplay', () => {
   it('should use native symbols for macOS modifiers', () => {
@@ -26,5 +27,19 @@ describe('formatShortcutForDisplay', () => {
 
   it('should leave shortcuts unchanged on other platforms', () => {
     expect(formatShortcutForDisplay('Control+Alt+A', false)).to.equal('Control+Alt+A');
+  });
+});
+
+describe('KeyMapper', () => {
+  it('should fall back to KeyboardEvent.code when an IME reports Process', () => {
+    const makeEvent = (key: string, code: string, location = 0) =>
+      ({ key, code, location }) as KeyboardEvent;
+
+    expect(KeyMapper.getName(makeEvent('Process', 'KeyA'))).to.equal('A');
+    expect(KeyMapper.getName(makeEvent('Process', 'Digit5'))).to.equal('5');
+    expect(KeyMapper.getName(makeEvent('Process', 'Space'))).to.equal('Space');
+    expect(KeyMapper.getName(makeEvent('Process', 'F9'))).to.equal('F9');
+    expect(KeyMapper.getName(makeEvent('Process', 'ArrowUp'))).to.equal('Up');
+    expect(KeyMapper.getName(makeEvent('Process', 'Numpad3', 3))).to.equal('num3');
   });
 });

@@ -10,3 +10,5 @@ out
 bin
 .DS_Store
 .codegpt
+dist
+host/target

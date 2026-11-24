@@ -79,9 +79,11 @@ export default function CollectionDetails(props: Props) {
 
   // Update the tag editor whenever the selected menu collection changes.
   React.useEffect(() => {
-    if (selectedCollection !== -1) {
-      setFilterTags(menuCollections[selectedCollection].tags);
-      setCollectionName(menuCollections[selectedCollection].name);
+    const collection =
+      selectedCollection >= 0 ? menuCollections[selectedCollection] : undefined;
+    if (collection) {
+      setFilterTags(collection.tags);
+      setCollectionName(collection.name);
     } else {
       setCollectionName(i18next.t('settings.all-menus'));
     }
@@ -119,14 +121,17 @@ export default function CollectionDetails(props: Props) {
         ) : null}
         <input
           className={classes.collectionName}
+          readOnly={!editingCollection}
           tabIndex={editingCollection ? undefined : -1}
           type="text"
           value={collectionName}
           onBlur={() => {
-            editCollection(selectedCollection, (collection) => {
-              collection.name = collectionName;
-              return collection;
-            });
+            if (selectedCollection >= 0 && selectedCollection < menuCollections.length) {
+              editCollection(selectedCollection, (collection) => {
+                collection.name = collectionName;
+                return collection;
+              });
+            }
           }}
           onChange={(event) => {
             setCollectionName(event.target.value);
@@ -153,7 +158,10 @@ export default function CollectionDetails(props: Props) {
           <Button
             icon={<TbSearch />}
             variant="tool"
-            onClick={() => setMenuSearchBarVisible(true)}
+            onClick={() => {
+              setMenuSearchBarVisible(true);
+              setTimeout(() => searchbarRef.current?.focus(), 0);
+            }}
           />
         )}
         {showingCollection && collectionDetailsVisible ? (
@@ -183,6 +191,13 @@ export default function CollectionDetails(props: Props) {
               onChange={(event) => {
                 setFilterTerm(event.target.value);
                 props.onSearch(event.target.value);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  setFilterTerm('');
+                  props.onSearch('');
+                  setMenuSearchBarVisible(false);
+                }
               }}
             />
             <Button

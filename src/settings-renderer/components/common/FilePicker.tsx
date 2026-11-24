@@ -34,6 +34,15 @@ type Props = {
 
   /** Optional placeholder text to display in the input field. */
   readonly placeholder?: string;
+
+  /** Hides the button for choosing a folder. */
+  readonly hideDirectoryButton?: boolean;
+
+  /** File type filters of the file dialog. */
+  readonly filters?: { name: string; extensions: string[] }[];
+
+  /** An additional button which is shown in front of the file buttons. */
+  readonly extraButton?: React.ReactNode;
 };
 
 /**
@@ -69,6 +78,7 @@ export default function FilePicker(props: Props) {
             }
           }}
         />
+        {props.extraButton}
         <Button
           isGrouped
           icon={<TbFile />}
@@ -76,7 +86,7 @@ export default function FilePicker(props: Props) {
           variant="secondary"
           onClick={() => {
             window.settingsAPI
-              .openFilePicker({ properties: ['openFile'] })
+              .openFilePicker({ properties: ['openFile'], filters: props.filters })
               .then((result) => {
                 if (result) {
                   setPath(result);
@@ -85,22 +95,24 @@ export default function FilePicker(props: Props) {
               });
           }}
         />
-        <Button
-          isGrouped
-          icon={<TbFolderOpen />}
-          tooltip={`${i18next.t('settings.file-picker.select-directory')}`}
-          variant="secondary"
-          onClick={() => {
-            window.settingsAPI
-              .openFilePicker({ properties: ['openDirectory'] })
-              .then((result) => {
-                if (result) {
-                  setPath(result);
-                  props.onChange?.(result);
-                }
-              });
-          }}
-        />
+        {props.hideDirectoryButton ? null : (
+          <Button
+            isGrouped
+            icon={<TbFolderOpen />}
+            tooltip={`${i18next.t('settings.file-picker.select-directory')}`}
+            variant="secondary"
+            onClick={() => {
+              window.settingsAPI
+                .openFilePicker({ properties: ['openDirectory'] })
+                .then((result) => {
+                  if (result) {
+                    setPath(result);
+                    props.onChange?.(result);
+                  }
+                });
+            }}
+          />
+        )}
       </div>
     </SettingsRow>
   );

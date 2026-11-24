@@ -13,19 +13,16 @@ declare const window: WindowWithAPIs;
 
 import React from 'react';
 import i18next from 'i18next';
-import { TbExternalLink, TbInfoSquareRoundedFilled } from 'react-icons/tb';
+import { TbInfoSquareRoundedFilled } from 'react-icons/tb';
 
 import { useAppState } from '../../state';
-import { Swirl, Modal, Button, Note } from '../common';
+import { Swirl, Modal, Note } from '../common';
 
 import * as classes from './AboutDialog.module.scss';
 
 const logo = require('../../../../assets/icons/square-icon.svg');
 
-/**
- * This dialog shows information about Kando, including the version number and links to
- * the release notes and the GitHub repository. It also includes a donation button.
- */
+/** This dialog shows the version of KandoAir and credits Kando, which it is based on. */
 export default function AboutDialog() {
   const aboutDialogVisible = useAppState((state) => state.aboutDialogVisible);
   const setAboutDialogVisible = useAppState((state) => state.setAboutDialogVisible);
@@ -51,10 +48,9 @@ export default function AboutDialog() {
           noteStyle="big"
           onLinkClick={(href) => {
             window.open(href, '_blank');
-            window.commonAPI.incrementAchievementStats(['sponsorsViewed']);
           }}>
-          {i18next.t('settings.about-dialog.message', {
-            link: 'https://ko-fi.com/schneegans',
+          {i18next.t('settings.about-dialog.message-air', {
+            link: 'https://github.com/kando-menu/kando',
           })}
         </Note>
         <Swirl marginBottom={20} marginTop={30} variant="2" width={350} />
@@ -64,8 +60,6 @@ export default function AboutDialog() {
             <br />
             {`${i18next.t('settings.about-dialog.kando-backend')}:`}
             <br />
-            {`${i18next.t('settings.about-dialog.electron-version')}:`}
-            <br />
             {`${i18next.t('settings.about-dialog.chrome-version')}:`}
             <br />
           </div>
@@ -74,32 +68,7 @@ export default function AboutDialog() {
             <br />
             {backend.name}
             <br />
-            {version.electronVersion}
-            <br />
             {version.chromeVersion}
-          </div>
-          <div className={classes.buttons}>
-            <Button
-              isBlock
-              icon={<TbExternalLink />}
-              label={i18next.t('settings.about-dialog.check-latest-release')}
-              tooltip="https://github.com/kando-menu/kando/releases"
-              onClick={() =>
-                window.open('https://github.com/kando-menu/kando/releases', '_blank')
-              }
-            />
-            <Button
-              isBlock
-              icon={<TbExternalLink />}
-              label={i18next.t('settings.about-dialog.read-release-notes')}
-              tooltip="https://github.com/kando-menu/kando/blob/main/docs/changelog.md"
-              onClick={() =>
-                window.open(
-                  'https://github.com/kando-menu/kando/blob/main/docs/changelog.md',
-                  '_blank'
-                )
-              }
-            />
           </div>
         </div>
       </div>

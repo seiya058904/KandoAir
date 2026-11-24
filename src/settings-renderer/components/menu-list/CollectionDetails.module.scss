@@ -13,7 +13,7 @@
 
 .collectionHeader {
   -webkit-app-region: drag;
-  min-height: env(titlebar-area-height, 30);
+  min-height: env(titlebar-area-height, 36px);
   display: flex;
   align-items: stretch;
   justify-content: space-between;

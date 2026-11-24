@@ -13,42 +13,7 @@ export * from './typed-event-emitter';
 export * from './action-type-registry';
 export * from './shortcut';
 
-import { AchievementStats, Menu } from './settings-schemata';
-
-/** This type is used to pass command line arguments to the app. */
-export type CommandlineOptions = {
-  // This optional parameter is specified using the --menu option. It is used to show a
-  // menu with the given name when the app or a second instance of the app is started.
-  readonly menu?: string;
-
-  // This optional parameter is specified using the --trigger option. It is used to show
-  // the menu with the given shortcut or shortcut ID when the app or a second instance of
-  // the app is started.
-  readonly trigger?: string;
-
-  // This optional parameter is specified using the --settings option. It is used to show
-  // the settings when the app or a second instance of the app is started.
-  readonly settings?: boolean;
-
-  // This optional parameter is specified using the --reload-menu-theme option. It is used
-  // to reload the current menu theme from disk.
-  readonly reloadMenuTheme?: boolean;
-
-  // This optional parameter is specified using the --reload-sound-theme option. It is
-  // used to reload the current sound theme from disk.
-  readonly reloadSoundTheme?: boolean;
-
-  // This optional parameter is specified using the --reload-icon-themes option. It is
-  // used to reload the available icon themes from disk.
-  readonly reloadIconThemes?: boolean;
-
-  // This optional parameter is specified using the --close-menu option. It is used to
-  // close the currently open menu.
-  readonly closeMenu?: boolean;
-
-  /** Specifies the config directory to use. */
-  readonly configDir?: string;
-};
+import { Menu } from './settings-schemata';
 
 /**
  * A simple 2D vector.
@@ -67,24 +32,6 @@ export type BackendInfo = {
    * which backend is currently active.
    */
   readonly name: string;
-
-  /**
-   * Each backend should return a suitable window type here. The window type determines
-   * how Kando's menu window is drawn. The most suitable type is dependent on the
-   * operating system and the window manager. For example, on GNOME, the window type
-   * "dock" seems to work best, on KDE "toolbar" provides a better experience. On Windows,
-   * "toolbar" is the only type that works.
-   * https://www.electronjs.org/docs/latest/api/browser-window#new-browserwindowoptions
-   *
-   * @returns The window type to use for the pie menu window.
-   */
-  readonly menuWindowType: string;
-
-  /** Some backends do not support listing the open windows. */
-  readonly supportsListingWindows: boolean;
-
-  /** Some backends do not support focusing windows. */
-  readonly supportsFocusingWindows: boolean;
 
   /**
    * There are some backends which do not support custom shortcuts. In this case, the user
@@ -108,17 +55,12 @@ export type BackendInfo = {
    * banner will be shown.
    */
   readonly settingsWindowBanner?: string;
-
-  /** This determines whether the settings window should use transparency per default. */
-  readonly shouldUseTransparentSettingsWindow: boolean;
 };
 
 /** This type describes some information about the current version of Kando. */
 export type VersionInfo = {
   readonly kandoVersion: string;
-  readonly electronVersion: string;
   readonly chromeVersion: string;
-  readonly nodeVersion: string;
 };
 
 /**
@@ -132,23 +74,18 @@ export type WMInfo = {
   readonly appName: string;
   readonly pointerX: number;
   readonly pointerY: number;
-  readonly workArea: Electron.Rectangle;
+  readonly workArea: { x: number; y: number; width: number; height: number };
 };
 
 /**
- * This type is used to transfer information about the system to the renderer process. It
- * will determine the visibility of some UI elements and the availability of some
- * features.
+ * Options of the file picker. This is a subset of Electron's OpenDialogOptions which is
+ * supported by the KandoAir host.
  */
-export type SystemInfo = {
-  /** Whether the system supports launching isolated processes. */
-  readonly supportsIsolatedProcesses: boolean;
-
-  /** The IPC port used by Kando's own IPC show-custom-menu interface. */
-  readonly ipcPort: number;
-
-  /** The API version supported by Kando's own IPC show-custom-menu interface. */
-  readonly ipcApiVersion: number;
+export type OpenDialogOptions = {
+  readonly title?: string;
+  readonly defaultPath?: string;
+  readonly filters?: { name: string; extensions: string[] }[];
+  readonly properties?: Array<'openFile' | 'openDirectory'>;
 };
 
 /** The persisted widths of the resizable sidebars in the settings window. */
@@ -384,69 +321,24 @@ export type MenuThemeDescription = {
   readonly loadFailed?: boolean;
 };
 
-/**
- * This type is used to describe a sound effect. It contains the path to the sound file
- * and some optional properties like the volume and pitch shift.
- */
-export type SoundEffect = {
-  /** The path to the sound file. */
+/** The description of a single sound in a sound theme. */
+export type SoundDescription = {
   readonly file: string;
-
-  /** The volume of the sound. */
   readonly volume?: number;
-
-  /** The maximum pitch shift. */
-  readonly maxPitch?: number;
-
-  /** The minimum pitch shift. */
   readonly minPitch?: number;
+  readonly maxPitch?: number;
 };
 
-/**
- * This type is used to describe a sound theme. It contains the properties which can be
- * defined in the JSON file of a sound theme. All paths are relative to the theme
- * directory.
- */
+/** The description of a sound theme. */
 export type SoundThemeDescription = {
-  /**
-   * The ID of the theme. This is used to identify the theme in the settings file. It is
-   * also the directory name of the theme and is set by Kando when loading the theme.json
-   * file. So the path to the theme.json file is this.directory/this.id/theme.json.
-   */
   id: string;
-
-  /**
-   * The absolute path to the directory where the theme is stored. This is set by Kando
-   * when loading the theme.json file.
-   */
   directory: string;
-
-  /** A human readable name of the theme. */
   readonly name: string;
-
-  /** The author of the theme. */
   readonly author: string;
-
-  /** The version of the theme. Should be a semantic version string like "1.0.0". */
   readonly themeVersion: string;
-
-  /** The version of the Kando sound theme engine this theme is compatible with. */
   readonly engineVersion: number;
-
-  /** The license of the theme. For instance "CC-BY-4.0". */
   readonly license: string;
-
-  /**
-   * All available sound effects. If a given sound is not defined here, no sound will be
-   * played for the corresponding action.
-   */
-  readonly sounds: Record<MenuInteractionType, SoundEffect>;
-
-  /**
-   * True if the theme.json(5) file could not be loaded or parsed, or if its engine
-   * version is not supported by this version of Kando. This is most likely caused by a
-   * version mismatch between the theme and Kando.
-   */
+  readonly sounds: Partial<Record<MenuInteractionType, SoundDescription>>;
   readonly loadFailed?: boolean;
 };
 
@@ -488,148 +380,13 @@ export type WindowDescription = {
 };
 
 /**
- * Each achievement can have one of three states. If it's 'locked', it will not be shown
- * in the user interface. Once some specific requirements are fulfilled, it will become
- * 'active' and eventually 'completed'.
- */
-export enum AchievementState {
-  eLocked = 0,
-  eActive = 1,
-  eCompleted = 2,
-}
-
-/**
- * The achievement badges are composed of different layers. There is a badge type which
- * defines the base layer. Then there is an icon layer which is drawn on top of the badge.
- * Finally, there is a gloss layer which is drawn on top of everything to give the badge a
- * shiny look.
- */
-export enum AchievementBadgeType {
-  eCopper,
-  eBronze,
-  eSilver,
-  eGold,
-  ePlatinum,
-  eSpecial1,
-  eSpecial2,
-  eSpecial3,
-  eSpecial4,
-  eSpecial5,
-  eSpecial6,
-}
-
-/** The achievement icons are drawn on top of the achievement badges. */
-export enum AchievementBadgeIcon {
-  eAddedItems,
-  eBackedUp,
-  eCancelor1,
-  eCancelor2,
-  eCancelor3,
-  eCancelor4,
-  eCancelor5,
-  eClickSelector,
-  eDeepMenu,
-  eDeletedAllMenus,
-  eDepthSelector1,
-  eDepthSelector2,
-  eDepthSelector3,
-  eFullMenu,
-  eGamepadSelector,
-  eGestureSelector,
-  eKeyboardSelector,
-  eManySelectionsStreak,
-  eMenuThemesSelected,
-  eRestored,
-  eSelector1,
-  eSelector2,
-  eSelector3,
-  eSelector4,
-  eSelector5,
-  eSettingsOpened,
-  eSpeedySelectionsStreak,
-  eSponsors,
-  eTutorialViewed,
-}
-
-/**
- * An achievement represents a specific goal that the user can accomplish while using
- * Kando. Achievements are tracked based on specific statistics stored in the settings.
- */
-export type Achievement = {
-  /** The ID of the achievement. This is a unique identifier used to track the achievement. */
-  id: string;
-
-  /**
-   * The name. Most achievements have multiple tiers. A {{tier}} in the localization will
-   * be replaced by a corresponding roman number (e.g. I, II, III, IV or V), {{attribute}}
-   * by a corresponding attribute like 'Novice' or 'Master'.
-   */
-  name: string;
-
-  /** The explanation string. */
-  description: string;
-
-  /** One of the State values above. */
-  state: AchievementState;
-
-  /** If the achievement was completed, this contains the completion date as a string. */
-  date: string;
-
-  /** The badge type for the achievement. */
-  badge: AchievementBadgeType;
-
-  /** The icon drawn for the achievement. */
-  icon: AchievementBadgeIcon;
-
-  /** The settings key this achievement is tracking. */
-  statKey: keyof AchievementStats;
-
-  /** The current value of the statKey, clamped to the statRange. */
-  statValue: number;
-
-  /** A value for the statKey value for which this achievement is active. */
-  statRange: [number, number];
-
-  /** The amount of experience gained by completion. */
-  xp: number;
-
-  /** If set, it's not shown in the UI until revealed by another achievement. */
-  hidden: boolean;
-
-  /** The ID of a hidden achievement. */
-  reveals?: string;
-};
-
-/** This type is used to transfer the user's current level progress. */
-export type LevelProgress = {
-  /** The current level. */
-  level: number;
-
-  /** The current experience points. */
-  xp: number;
-
-  /** The total experience points required to reach the next level. */
-  maxXp: number;
-
-  /** The number of new achievements since the user last viewed the dialog. */
-  newAchievementsCount: number;
-
-  /** All active achievements. */
-  activeAchievements: Achievement[];
-
-  /** All completed achievements. */
-  completedAchievements: Achievement[];
-};
-
-/**
  * For achievement tracking, it is important to know the source of a selection. This enum
  * is used to indicate whether a selection was made using the mouse, a gesture (marking
- * mode or turbo mode) or a gamepad.
+ * mode or turbo mode).
  */
 export enum SelectionSource {
   eUnknown = 'unknown',
   eClick = 'click',
   eKeyboard = 'keyboard',
   eGesture = 'gesture',
-  eGamepad = 'gamepad',
 }

@@ -14,12 +14,12 @@ import { InputMethod, ButtonState, InputState, SelectionType } from './input-met
 import { GestureDetector } from './gesture-detector';
 
 /**
- * This class detects mouse or touch gestures. It listens to motion, button, and key
- * events and calls the InputMethod's callbacks accordingly. It supports the so-called
- * "Marking Mode" and the "Turbo Mode". In marking mode, items can be dragged around and
- * are selected when the mouse is stationary for some time or makes a sharp turn. "Turbo
- * Mode" works similar to marking mode, but requires a modifier key to be pressed instead
- * of the mouse button.
+ * This class detects mouse gestures. It listens to motion, button, and key events and
+ * calls the InputMethod's callbacks accordingly. It supports the so-called "Marking Mode"
+ * and the "Turbo Mode". In marking mode, items can be dragged around and are selected
+ * when the mouse is stationary for some time or makes a sharp turn. "Turbo Mode" works
+ * similar to marking mode, but requires a modifier key to be pressed instead of the mouse
+ * button.
  */
 export class PointerInput extends InputMethod {
   /**
@@ -132,7 +132,9 @@ export class PointerInput extends InputMethod {
    * think it's not an issue.
    */
   public onShowMenu(deferTurboMode: boolean) {
-    this.ignoreMotionEvents = 2;
+    // KandoAir is Windows-only; Wayland/KWin's stale-motion workaround is not needed
+    // and would drop the first two mousemove frames (~16-33 ms of input latency).
+    this.ignoreMotionEvents = 0;
     this.buttonState = ButtonState.eReleased;
     this.deferredTurboMode = deferTurboMode;
   }
@@ -140,9 +142,9 @@ export class PointerInput extends InputMethod {
   /*
    * This method should be called when the pointer is moved.
    *
-   * @param event The mouse or touch event.
+   * @param event The mouse event.
    */
-  public onMotionEvent(event: MouseEvent | TouchEvent) {
+  public onMotionEvent(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -213,23 +215,22 @@ export class PointerInput extends InputMethod {
   }
 
   /**
-   * This method should be called when a mouse button is pressed or a touch event is
-   * detected.
+   * This method should be called when a mouse button is pressed.
    *
-   * @param event The mouse or touch event.
+   * @param event The mouse event.
    */
-  public onPointerDownEvent(event: MouseEvent | TouchEvent) {
+  public onPointerDownEvent(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
 
     // Go back or hide the menu on right click events.
-    if ((event as MouseEvent).button === 2) {
+    if (event.button === 2) {
       this.closeCallback();
       return;
     }
 
     // Go back using the mouse back button.
-    if ((event as MouseEvent).button === 3) {
+    if (event.button === 3) {
       this.selectCallback(
         this.pointerPosition,
         SelectionType.eParent,
@@ -238,14 +239,7 @@ export class PointerInput extends InputMethod {
       return;
     }
 
-    if (event instanceof MouseEvent) {
-      this.clickPosition = { x: event.clientX, y: event.clientY };
-    } else {
-      this.clickPosition = {
-        x: event.touches[0].clientX,
-        y: event.touches[0].clientY,
-      };
-    }
+    this.clickPosition = { x: event.clientX, y: event.clientY };
 
     // Store the absolute mouse position, as well as the mouse position, distance, and
     // angle relative to the currently selected item.
@@ -256,12 +250,11 @@ export class PointerInput extends InputMethod {
   }
 
   /**
-   * This method should be called when a mouse button is released or a touch event is
-   * detected.
+   * This method should be called when a mouse button is released.
    *
-   * @param event The mouse or touch event.
+   * @param event The mouse event.
    */
-  public onPointerUpEvent(event: MouseEvent | TouchEvent) {
+  public onPointerUpEvent(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -354,27 +347,13 @@ export class PointerInput extends InputMethod {
    * current button state. If either of these values changed, a new state will be
    * emitted.
    *
-   * @param pointer Either a mouse or touch event or an Vec2.
+   * @param pointer Either a mouse event or an Vec2.
    * @param center The current center of the menu.
    * @param button The current button state.
    */
-  private update(
-    pointer: MouseEvent | TouchEvent | Vec2,
-    center: Vec2,
-    button: ButtonState
-  ) {
+  private update(pointer: MouseEvent | Vec2, center: Vec2, button: ButtonState) {
     if (pointer instanceof MouseEvent) {
       this.update({ x: pointer.clientX, y: pointer.clientY }, center, button);
-    } else if (pointer instanceof TouchEvent) {
-      const hasTouches = pointer.touches && pointer.touches.length > 0;
-      this.update(
-        {
-          x: hasTouches ? pointer.touches[0].clientX : this.pointerPosition.x,
-          y: hasTouches ? pointer.touches[0].clientY : this.pointerPosition.y,
-        },
-        center,
-        button
-      );
     } else {
       if (
         this.centerPosition.x !== center.x ||

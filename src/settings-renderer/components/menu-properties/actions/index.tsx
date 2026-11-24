@@ -1,24 +1,24 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 //   _  _ ____ _  _ ___  ____                                                           //
 //   |_/  |__| |\ | |  \ |  |    This file belongs to Kando, the cross-platform         //
-//   | \_ |  | | \| |__/ |__|    pie menu. Read more on github.com/menu/kando           //
+//   | \_ |  | | \| |__/ |__|    pie menu. Read more on github.com/kando-menu/kando     //
 //                                                                                      //
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+// SPDX-FileCopyrightText: KandoAir contributors
 // SPDX-License-Identifier: MIT
 
 import React from 'react';
 
-import { DelayActionConfig } from './DelayActionConfig';
 import { ExecuteCommandActionConfig } from './ExecuteCommandActionConfig';
 import { ExecuteMacroActionConfig } from './ExecuteMacroActionConfig';
 import { FocusWindowActionConfig } from './FocusWindowActionConfig';
+import { LaunchAppActionConfig } from './LaunchAppActionConfig';
 import { OpenFileActionConfig } from './OpenFileActionConfig';
 import { OpenMenuActionConfig } from './OpenMenuActionConfig';
 import { OpenURIActionConfig } from './OpenURIActionConfig';
 import { SetClipboardActionConfig } from './SetClipboardActionConfig';
-import { SendWebSocketMessageActionConfig } from './SendWebSocketMessageActionConfig';
 import { SimulateHotkeyActionConfig } from './SimulateHotkeyActionConfig';
 import { WorkflowAction } from '../../../../common';
 
@@ -35,8 +35,14 @@ export function getConfigComponent(
   onUpdateAction: (action: WorkflowAction) => void,
   onUpdateItem: (info: { name?: string; icon?: string; iconTheme?: string }) => void
 ): React.ReactElement | null {
-  if (action.type === 'delay') {
-    return <DelayActionConfig action={action} onUpdateAction={onUpdateAction} />;
+  if (action.type === 'launch-app') {
+    return (
+      <LaunchAppActionConfig
+        action={action}
+        onUpdateAction={onUpdateAction}
+        onUpdateItem={onUpdateItem}
+      />
+    );
   }
 
   if (action.type === 'execute-command') {
@@ -49,27 +55,9 @@ export function getConfigComponent(
     );
   }
 
-  if (action.type === 'execute-macro') {
-    return <ExecuteMacroActionConfig action={action} onUpdateAction={onUpdateAction} />;
-  }
-
-  if (action.type === 'focus-window') {
-    return <FocusWindowActionConfig action={action} onUpdateAction={onUpdateAction} />;
-  }
-
   if (action.type === 'open-file') {
     return (
       <OpenFileActionConfig
-        action={action}
-        onUpdateAction={onUpdateAction}
-        onUpdateItem={onUpdateItem}
-      />
-    );
-  }
-
-  if (action.type === 'open-menu') {
-    return (
-      <OpenMenuActionConfig
         action={action}
         onUpdateAction={onUpdateAction}
         onUpdateItem={onUpdateItem}
@@ -81,18 +69,30 @@ export function getConfigComponent(
     return <OpenURIActionConfig action={action} onUpdateAction={onUpdateAction} />;
   }
 
+  if (action.type === 'simulate-hotkey') {
+    return <SimulateHotkeyActionConfig action={action} onUpdateAction={onUpdateAction} />;
+  }
+
   if (action.type === 'set-clipboard') {
     return <SetClipboardActionConfig action={action} onUpdateAction={onUpdateAction} />;
   }
 
-  if (action.type === 'send-websocket-message') {
-    return (
-      <SendWebSocketMessageActionConfig action={action} onUpdateAction={onUpdateAction} />
-    );
+  if (action.type === 'execute-macro') {
+    return <ExecuteMacroActionConfig action={action} onUpdateAction={onUpdateAction} />;
   }
 
-  if (action.type === 'simulate-hotkey') {
-    return <SimulateHotkeyActionConfig action={action} onUpdateAction={onUpdateAction} />;
+  if (action.type === 'focus-window') {
+    return <FocusWindowActionConfig action={action} onUpdateAction={onUpdateAction} />;
+  }
+
+  if (action.type === 'open-menu') {
+    return (
+      <OpenMenuActionConfig
+        action={action}
+        onUpdateAction={onUpdateAction}
+        onUpdateItem={onUpdateItem}
+      />
+    );
   }
 
   return null;

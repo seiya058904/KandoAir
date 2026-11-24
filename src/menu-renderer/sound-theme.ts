@@ -6,79 +6,147 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+// SPDX-FileCopyrightText: KandoAir contributors
 // SPDX-License-Identifier: MIT
-
-import { WindowWithAPIs } from './menu-window-api';
-declare const window: WindowWithAPIs;
-
-import { Howl } from 'howler';
 
 import { SoundThemeDescription, MenuInteractionType } from '../common';
 
-/** This class is responsible for loading a sound theme and playing sounds. */
+/**
+ * Plays menu interaction sounds using the browser's built-in Web Audio API. Buffers are
+ * fetched lazily and cached in memory; when sound is disabled or the menu is hidden, the
+ * AudioContext is not created or is suspended so idle overhead stays zero.
+ */
 export class SoundTheme {
-  /**
-   * The current theme description. When the user changes the theme, this will be updated
-   * via the `loadDescription` method.
-   */
-  private description: SoundThemeDescription;
+  private description: SoundThemeDescription | null = null;
+  private volume = 0.5;
+  private reloadCounter = 0;
+  private context: AudioContext | null = null;
+  private buffers = new Map<string, Promise<AudioBuffer | null>>();
+  private suspendTimer: ReturnType<typeof setTimeout> | null = null;
+  private activeSources = 0;
 
-  /** The current volume. */
-  private volume: number = 0.5;
-
-  /**
-   * This is increased each time the sound theme is reloaded. It is used to ensure that
-   * the sound files are reloaded from disk instead of being cached by the browser.
-   */
-  private reloadCounter: number = 0;
-
-  /**
-   * Loads the given theme description.
-   *
-   * @param description The description of the sound theme to load.
-   */
+  /** Loads the given sound theme description and clears previously cached buffers. */
   public loadDescription(description: SoundThemeDescription) {
     this.description = description;
-    this.reloadCounter++;
-  }
-
-  /**
-   * Sets the volume of the sound theme.
-   *
-   * @param volume The new volume.
-   */
-  public setVolume(volume: number) {
-    this.volume = volume;
-  }
-
-  /**
-   * Plays the sound associated with the given type.
-   *
-   * @param type The type of sound to play.
-   */
-  public playSound(type: MenuInteractionType) {
-    const sound = this.description.sounds[type];
-    if (sound) {
-      const volume = (sound.volume || 1) * this.volume;
-      const src =
-        'file://' +
-        this.description.directory +
-        '/' +
-        this.description.id +
-        '/' +
-        sound.file +
-        '?v=' +
-        this.reloadCounter; // Append reload counter to force reloading the sound file.
-
-      const minRate = sound.minPitch || 1;
-      const maxRate = sound.maxPitch || 1;
-      const rate = Math.random() * (maxRate - minRate) + minRate;
-
-      try {
-        new Howl({ src: [src], volume, rate }).play();
-      } catch (error) {
-        window.commonAPI.log(`Error playing sound ${type}: ${error}`);
+    this.reloadCounter += 1;
+    this.buffers.clear();
+    if (description.id === 'none' && this.context) {
+      const ctx = this.context;
+      this.context = null;
+      this.activeSources = 0;
+      if (this.suspendTimer) {
+        clearTimeout(this.suspendTimer);
+        this.suspendTimer = null;
       }
+      void ctx.close().catch(() => {});
     }
+  }
+
+  /** Sets the overall playback volume (0.0 to 1.0). */
+  public setVolume(volume: number) {
+    this.volume = Math.max(0, Math.min(1, volume));
+  }
+
+  /** Suspends the audio context shortly after the menu closes to save resources. */
+  public scheduleSuspend(delayMs = 600) {
+    if (!this.context) {
+      return;
+    }
+    if (this.suspendTimer) {
+      clearTimeout(this.suspendTimer);
+    }
+    this.suspendTimer = setTimeout(() => {
+      this.suspendTimer = null;
+      if (this.activeSources > 0) {
+        // Wait for any longer custom sound clip to finish before suspending.
+        this.scheduleSuspend(400);
+        return;
+      }
+      if (this.context && this.context.state === 'running') {
+        void this.context.suspend().catch(() => {});
+      }
+    }, delayMs);
+  }
+
+  /** Plays the sound associated with the given interaction, if configured. */
+  public playSound(type: MenuInteractionType) {
+    if (!this.description || this.description.id === 'none' || this.volume <= 0) {
+      return;
+    }
+    const sound = this.description.sounds?.[type];
+    if (!sound || !sound.file || !this.description.directory) {
+      return;
+    }
+
+    const volume = (sound.volume ?? 1) * this.volume;
+    if (volume <= 0) {
+      return;
+    }
+
+    if (this.suspendTimer) {
+      clearTimeout(this.suspendTimer);
+      this.suspendTimer = null;
+    }
+
+    const ctx = this.ensureContext();
+    if (!ctx) {
+      return;
+    }
+
+    const src = `${this.description.directory}/${encodeURIComponent(this.description.id)}/${sound.file}?v=${this.reloadCounter}`;
+    const minRate = sound.minPitch ?? 1;
+    const maxRate = sound.maxPitch ?? 1;
+    const rate =
+      minRate === maxRate ? minRate : Math.random() * (maxRate - minRate) + minRate;
+
+    const resumePromise =
+      ctx.state === 'suspended' ? ctx.resume().catch(() => {}) : Promise.resolve();
+
+    void Promise.all([resumePromise, this.loadBuffer(ctx, src)]).then(([, buffer]) => {
+      if (!buffer || this.context !== ctx) {
+        return;
+      }
+      try {
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.playbackRate.value = rate;
+        const gain = ctx.createGain();
+        gain.gain.value = volume;
+        source.connect(gain);
+        gain.connect(ctx.destination);
+        this.activeSources += 1;
+        source.onended = () => {
+          this.activeSources = Math.max(0, this.activeSources - 1);
+        };
+        source.start(0);
+      } catch {
+        // Ignore transient Web Audio errors.
+      }
+    });
+  }
+
+  private ensureContext(): AudioContext | null {
+    if (!this.context && typeof AudioContext !== 'undefined') {
+      this.context = new AudioContext();
+    }
+    return this.context;
+  }
+
+  private loadBuffer(ctx: AudioContext, url: string): Promise<AudioBuffer | null> {
+    let pending = this.buffers.get(url);
+    if (!pending) {
+      pending = fetch(url)
+        .then((response) => (response.ok ? response.arrayBuffer() : null))
+        .then((data) => (data ? ctx.decodeAudioData(data) : null))
+        .catch((): AudioBuffer | null => null)
+        .then((buffer) => {
+          if (!buffer) {
+            this.buffers.delete(url);
+          }
+          return buffer;
+        });
+      this.buffers.set(url, pending);
+    }
+    return pending;
   }
 }

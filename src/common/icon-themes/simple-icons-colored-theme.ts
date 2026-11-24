@@ -1,14 +1,13 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 //   _  _ ____ _  _ ___  ____                                                           //
 //   |_/  |__| |\ | |  \ |  |    This file belongs to Kando, the cross-platform         //
-//   | \_ |  | | \| |__/ |__|    pie menu. Read more on github.com/menu/kando           //
+//   | \_ |  | | \| |__/ |__|    pie menu. Read more on github.com/kando-menu/kando     //
 //                                                                                      //
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+// SPDX-FileCopyrightText: KandoAir contributors
 // SPDX-License-Identifier: MIT
-
-import { matchSorter } from 'match-sorter';
 
 import { SimpleIconsTheme } from './simple-icons-theme';
 
@@ -42,11 +41,7 @@ export class SimpleIconsColoredTheme extends SimpleIconsTheme {
     return {
       type: 'list' as const,
       usesTextColor: false,
-      listIcons: (searchTerm: string) => {
-        return matchSorter(this.iconsData, searchTerm, { keys: ['title', 'slug'] }).map(
-          (icon) => icon.slug
-        );
-      },
+      listIcons: (searchTerm: string) => this.listIconsFn(searchTerm),
     };
   }
 }

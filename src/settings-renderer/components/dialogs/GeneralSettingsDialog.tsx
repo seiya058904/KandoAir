@@ -15,10 +15,11 @@ import React from 'react';
 import i18next from 'i18next';
 
 import {
+  TbFolderOpen,
   TbSettingsFilled,
-  TbReload,
   TbPointer,
   TbPointerCog,
+  TbReload,
   TbRestore,
 } from 'react-icons/tb';
 import { FaDownload } from 'react-icons/fa';
@@ -49,12 +50,20 @@ export default function GeneralSettingsDialog() {
   const [triggerCenterClickOnKeyRelease] = useGeneralSetting(
     'triggerCenterClickOnKeyRelease'
   );
-  const backend = useAppState((state) => state.backendInfo);
   const [activeCategory, setActiveCategory] = React.useState(0);
   const [transitionDirection, setTransitionDirection] =
     React.useState<TransitionDirection>('down');
   const categoryTransitionDuration = 320; // 280ms animation + 40ms enter delay
-  const activeOptionsPageRef = React.createRef<HTMLDivElement>();
+  // Keep an independent ref per category so entering and exiting CSSTransitions
+  // inside TransitionGroup do not overwrite the same DOM node ref.
+  const pageRef0 = React.useRef<HTMLDivElement>(null);
+  const pageRef1 = React.useRef<HTMLDivElement>(null);
+  const pageRef2 = React.useRef<HTMLDivElement>(null);
+  const pageRef3 = React.useRef<HTMLDivElement>(null);
+  const pageRef4 = React.useRef<HTMLDivElement>(null);
+  const pageRef5 = React.useRef<HTMLDivElement>(null);
+  const pageRefs = [pageRef0, pageRef1, pageRef2, pageRef3, pageRef4, pageRef5];
+  const activeOptionsPageRef = pageRefs[activeCategory] ?? pageRef0;
 
   const handleCategorySelect = (categoryIndex: number) => {
     if (categoryIndex === activeCategory) {
@@ -85,8 +94,6 @@ export default function GeneralSettingsDialog() {
   // Widget width
   const spinbuttonWidth = 60;
 
-  // Options for dropdowns. Themes which failed to load (most likely due to a version
-  // mismatch) are excluded here but are used below to show a warning.
   const soundThemeOptions = soundThemes
     .filter((theme) => !theme.loadFailed)
     .map((theme) => ({
@@ -98,25 +105,20 @@ export default function GeneralSettingsDialog() {
     label: i18next.t('settings.general-settings-dialog.none'),
   });
 
-  const failedSoundThemes = soundThemes.filter((theme) => theme.loadFailed);
-  const soundThemeWarning =
-    failedSoundThemes.length > 0
-      ? i18next.t('settings.general-settings-dialog.sound-theme-load-failed-warning', {
-          themes: failedSoundThemes.map((theme) => theme.name).join(', '),
-        })
-      : undefined;
-
-  const localeOptions = cLocales.map((code) => {
-    const display = new Intl.DisplayNames([code], { type: 'language' });
-    return {
-      value: code,
-      label: display.of(code),
-    };
-  });
-  localeOptions.unshift({
-    value: 'auto',
-    label: i18next.t('settings.general-settings-dialog.auto-language'),
-  });
+  const localeOptions = React.useMemo(() => {
+    const options = cLocales.map((code) => {
+      const display = new Intl.DisplayNames([code], { type: 'language' });
+      return {
+        value: code,
+        label: display.of(code),
+      };
+    });
+    options.unshift({
+      value: 'auto',
+      label: i18next.t('settings.general-settings-dialog.auto-language'),
+    });
+    return options;
+  }, []);
 
   // Categories and their content
   const categories = [
@@ -132,11 +134,9 @@ export default function GeneralSettingsDialog() {
             settingsKey="locale"
           />
           <SettingsCheckbox
-            info={i18next.t(
-              'settings.general-settings-dialog.check-for-new-versions-info'
-            )}
-            label={i18next.t('settings.general-settings-dialog.check-for-new-versions')}
-            settingsKey="enableVersionCheck"
+            info={i18next.t('settings.general-settings-dialog.auto-start-info')}
+            label={i18next.t('settings.general-settings-dialog.auto-start')}
+            settingsKey="autoStart"
           />
           <SettingsCheckbox
             info={i18next.t(
@@ -278,21 +278,6 @@ export default function GeneralSettingsDialog() {
             )}
             settingsKey="hideSettingsButton"
           />
-          <h1>{i18next.t('settings.general-settings-dialog.achievements')}</h1>
-          <SettingsCheckbox
-            info={i18next.t('settings.general-settings-dialog.enable-achievements-info')}
-            label={i18next.t('settings.general-settings-dialog.enable-achievements')}
-            settingsKey="enableAchievements"
-          />
-          <SettingsCheckbox
-            info={i18next.t(
-              'settings.general-settings-dialog.enable-achievement-notifications-info'
-            )}
-            label={i18next.t(
-              'settings.general-settings-dialog.enable-achievement-notifications'
-            )}
-            settingsKey="enableAchievementNotifications"
-          />
         </>
       ),
     },
@@ -377,22 +362,6 @@ export default function GeneralSettingsDialog() {
             label={i18next.t('settings.general-settings-dialog.hide-on-focus-out')}
             settingsKey="hideOnFocusOut"
           />
-          <SettingsCheckbox
-            info={i18next.t(
-              'settings.general-settings-dialog.enable-gamepad-support-info'
-            )}
-            label={i18next.t('settings.general-settings-dialog.enable-gamepad-support')}
-            settingsKey="enableGamepad"
-          />
-          {backend.name === 'Windows' && (
-            <SettingsCheckbox
-              info={i18next.t(
-                'settings.general-settings-dialog.windows-ink-workaround-info'
-              )}
-              label={i18next.t('settings.general-settings-dialog.windows-ink-workaround')}
-              settingsKey="windowsInkWorkaround"
-            />
-          )}
           <h1>{i18next.t('settings.general-settings-dialog.interaction-modes')}</h1>
           <SettingsCheckbox
             info={i18next.t('settings.general-settings-dialog.enable-marking-mode-info')}
@@ -438,12 +407,6 @@ export default function GeneralSettingsDialog() {
             )}
             settingsKey="triggerCenterClickOnKeyRelease"
           />
-
-          <Note isCentered useMarkdown marginTop={20}>
-            {i18next.t('settings.general-settings-dialog.learn-interaction-mode', {
-              link: 'https://kando.menu/usage/',
-            })}
-          </Note>
         </>
       ),
     },
@@ -457,7 +420,6 @@ export default function GeneralSettingsDialog() {
             maxWidth={200}
             options={soundThemeOptions}
             settingsKey="soundTheme"
-            warning={soundThemeWarning}
           />
           <SettingsSpinbutton
             info={i18next.t('settings.general-settings-dialog.volume-info')}
@@ -465,15 +427,34 @@ export default function GeneralSettingsDialog() {
             max={1}
             min={0}
             settingsKey="soundVolume"
-            step={0.01}
+            step={0.05}
             width={spinbuttonWidth}
           />
-          <Swirl marginBottom={20} marginTop={40} variant="2" width={350} />
-          <Note isCentered useMarkdown>
-            {i18next.t('settings.general-settings-dialog.learn-how-to-add-sound-themes', {
-              link: 'https://kando.menu/sound-themes/',
-            })}
-          </Note>
+          <Swirl marginBottom={20} marginTop={30} variant="2" width={350} />
+          <div style={{ display: 'flex', gap: 2 }}>
+            <Button
+              isBlock
+              isGrouped
+              icon={<TbFolderOpen />}
+              label={i18next.t('settings.menu-themes-dialog.open-theme-directory')}
+              variant="pill"
+              onClick={() => {
+                window.settingsAPI.getSoundThemesDirectory().then((dir) => {
+                  window.settingsAPI.openPath(dir);
+                });
+              }}
+            />
+            <Button
+              isBlock
+              isGrouped
+              icon={<TbReload />}
+              label={i18next.t('settings.general-settings-dialog.reload-sound-theme')}
+              variant="pill"
+              onClick={() => {
+                window.settingsAPI.reloadSoundTheme();
+              }}
+            />
+          </div>
         </>
       ),
     },
@@ -574,82 +555,6 @@ export default function GeneralSettingsDialog() {
             step={10}
             width={spinbuttonWidth}
           />
-          {backend.name === 'Niri' && (
-            <>
-              <h1>
-                {i18next.t('settings.general-settings-dialog.wlroots-specific-options')}
-              </h1>
-              <Note useMarkdown marginTop={-5}>
-                {i18next.t(
-                  'settings.general-settings-dialog.options-that-will-only-affect-the-wlroots-backend'
-                )}
-              </Note>
-              <SettingsSpinbutton
-                info={i18next.t(
-                  'settings.general-settings-dialog.wlroots-pointer-get-timeout-mouse-info'
-                )}
-                label={i18next.t(
-                  'settings.general-settings-dialog.wlroots-pointer-get-timeout-mouse'
-                )}
-                max={5000}
-                min={0}
-                settingsKey="wlrootsPointerGetTimeoutMouse"
-                step={100}
-                width={spinbuttonWidth}
-              />
-              <SettingsSpinbutton
-                info={i18next.t(
-                  'settings.general-settings-dialog.wlroots-pointer-get-timeout-touch-info'
-                )}
-                label={i18next.t(
-                  'settings.general-settings-dialog.wlroots-pointer-get-timeout-touch'
-                )}
-                max={5000}
-                min={0}
-                settingsKey="wlrootsPointerGetTimeoutTouch"
-                step={100}
-                width={spinbuttonWidth}
-              />
-              <SettingsDropdown
-                info={i18next.t(
-                  'settings.general-settings-dialog.wlroots-pointer-get-timeout-default-behavior-info'
-                )}
-                label={i18next.t(
-                  'settings.general-settings-dialog.wlroots-pointer-get-timeout-default-behavior'
-                )}
-                maxWidth={200}
-                options={[
-                  {
-                    value: 'top-left',
-                    label: i18next.t('settings.general-settings-dialog.top-left'),
-                  },
-                  {
-                    value: 'top-right',
-                    label: i18next.t('settings.general-settings-dialog.top-right'),
-                  },
-                  {
-                    value: 'bottom-left',
-                    label: i18next.t('settings.general-settings-dialog.bottom-left'),
-                  },
-                  {
-                    value: 'bottom-right',
-                    label: i18next.t('settings.general-settings-dialog.bottom-right'),
-                  },
-                  {
-                    value: 'center',
-                    label: i18next.t('settings.general-settings-dialog.center'),
-                  },
-                  {
-                    value: 'previously-reported-position',
-                    label: i18next.t(
-                      'settings.general-settings-dialog.previously-reported'
-                    ),
-                  },
-                ]}
-                settingsKey="wlrootsPointerGetTimeoutDefaultBehavior"
-              />
-            </>
-          )}
           <Swirl marginBottom={20} marginTop={40} variant="2" width={350} />
           <Note isCentered>
             {i18next.t('settings.general-settings-dialog.advanced-menu-options-note')}
@@ -667,7 +572,7 @@ export default function GeneralSettingsDialog() {
             marginBottom={20}
             onLinkClick={() => {
               window.settingsAPI.getConfigDirectory().then((dir) => {
-                window.open('file://' + dir, '_blank');
+                window.settingsAPI.openPath(dir);
               });
             }}>
             {i18next.t('settings.general-settings-dialog.message', { link: '' })}

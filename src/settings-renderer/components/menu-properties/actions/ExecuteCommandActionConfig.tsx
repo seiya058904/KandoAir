@@ -12,7 +12,6 @@ import React from 'react';
 import i18next from 'i18next';
 import { TbApps } from 'react-icons/tb';
 
-import { useAppState } from '../../../state';
 import { TextInput, Checkbox, Button } from '../../common';
 import { ExecuteCommandAction } from '../../../../common';
 import AppPicker from '../AppPicker';
@@ -37,10 +36,6 @@ type Props = {
  * command.
  */
 export function ExecuteCommandActionConfig(props: Props) {
-  const supportsIsolatedProcesses = useAppState(
-    (state) => state.systemInfo.supportsIsolatedProcesses
-  );
-
   const [appPickerVisible, setAppPickerVisible] = React.useState(false);
 
   return (
@@ -68,19 +63,6 @@ export function ExecuteCommandActionConfig(props: Props) {
           }}
         />
       </div>
-      {supportsIsolatedProcesses ? (
-        <Checkbox
-          info={i18next.t('menu-actions.execute-command.isolated-info')}
-          initialValue={props.action.isolated}
-          label={i18next.t('menu-actions.execute-command.isolated')}
-          onChange={(value) => {
-            props.onUpdateAction({
-              ...props.action,
-              isolated: value,
-            });
-          }}
-        />
-      ) : null}
       <Checkbox
         info={i18next.t('menu-actions.execute-command.detached-info')}
         initialValue={props.action.detached !== false} // explicitly check because undefined should mean true

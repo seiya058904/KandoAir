@@ -16,7 +16,7 @@ import * as classes from './MenuBehavior.module.scss';
 const cx = classNames.bind(classes);
 
 import { useAppState, useMenuSettings } from '../../state';
-import { Button, Checkbox, Note } from '../common';
+import { Button, Checkbox } from '../common';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import ScreenPositionPicker from './ScreenPositionPicker';
 import { BiTargetLock } from 'react-icons/bi';
@@ -34,24 +34,28 @@ export default function MenuBehavior() {
   const [fixedPositionValueX, setFixedPositionValueX] = React.useState('');
   const [fixedPositionValueY, setFixedPositionValueY] = React.useState('');
 
+  const menu = menus[selectedMenu];
+
   React.useEffect(() => {
-    setFixedPositionInputVisible(menus[selectedMenu].useFixedPosition);
-    setFixedPositionValueX(menus[selectedMenu].fixedMenuPosition.x.toFixed(4));
-    setFixedPositionValueY(menus[selectedMenu].fixedMenuPosition.y.toFixed(4));
-  }, [selectedMenu, menus]);
+    if (!menu) {
+      return;
+    }
+    setFixedPositionInputVisible(menu.useFixedPosition);
+    setFixedPositionValueX(menu.fixedMenuPosition.x.toFixed(4));
+    setFixedPositionValueY(menu.fixedMenuPosition.y.toFixed(4));
+  }, [menu]);
 
   const [menuPositionBehaviorRef] = useAutoAnimate({ duration: 250 });
 
+  if (!menu) {
+    return null;
+  }
+
   return (
     <div className={classes.container}>
-      <Note useMarkdown marginBottom={-5} marginTop={-5}>
-        {i18next.t('settings.menu-behavior-info', {
-          link: 'https://kando.menu/usage/',
-        })}
-      </Note>
       <Checkbox
         info={i18next.t('settings.fixed-position-mode-info')}
-        initialValue={menus[selectedMenu].useFixedPosition}
+        initialValue={menu.useFixedPosition}
         label={i18next.t('settings.fixed-position-mode')}
         onChange={(enableFixedPosition) => {
           setFixedPositionInputVisible(enableFixedPosition);
@@ -108,6 +112,11 @@ export default function MenuBehavior() {
                     setValue(event.target.value);
                   }
                 }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.currentTarget.blur();
+                  }
+                }}
               />
             ))}
             <Button
@@ -124,7 +133,7 @@ export default function MenuBehavior() {
       </div>
       <Checkbox
         info={i18next.t('settings.anchored-mode-info')}
-        initialValue={menus[selectedMenu].anchored}
+        initialValue={menu.anchored}
         label={i18next.t('settings.anchored-mode')}
         onChange={(anchored) => {
           editMenu(selectedMenu, (menu) => {
@@ -135,7 +144,7 @@ export default function MenuBehavior() {
       />
       <Checkbox
         info={i18next.t('settings.hover-mode-info')}
-        initialValue={menus[selectedMenu].hoverMode}
+        initialValue={menu.hoverMode}
         label={i18next.t('settings.hover-mode')}
         onChange={(hoverMode) => {
           editMenu(selectedMenu, (menu) => {

@@ -6,10 +6,10 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+// SPDX-FileCopyrightText: KandoAir contributors
 // SPDX-License-Identifier: MIT
 
-import { ipcRenderer, webUtils } from 'electron';
-
+import { hostBridge } from './host-bridge';
 import {
   MenuItem,
   GeneralSettings,
@@ -17,31 +17,31 @@ import {
   SoundThemeDescription,
   MenuSettings,
   IconThemesInfo,
-  AchievementStatsNumberKeys,
 } from '.';
 
 /**
  * This basic set of functions will be available in both renderer processes. It will be
  * available in the menu window's renderer process as well as in the settings window's
  * renderer process. Both processes will extend this interface with additional functions.
+ * In KandoAir, the functions talk to the native host via the WebView2 bridge.
  */
 export const COMMON_WINDOW_API = {
   /**
-   * This will print the given message to the console of the host process.
+   * This will print the given message to the log of the host process.
    *
    * @param message The message to print.
    */
   log: (message: string) => {
-    ipcRenderer.send('common.log', message);
+    hostBridge.send('common.log', message);
   },
 
   /**
-   * This will return the current locale and all localization strings loaded by i18next
+   * This will return the current locale and all localization strings loaded by the host
    * for the current and all potential fallback locales.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getLocales: (): Promise<{ current: string; data: any; fallbackLng: any }> => {
-    return ipcRenderer.invoke('common.get-locales');
+    return hostBridge.invoke('common.get-locales');
   },
 
   /**
@@ -51,27 +51,15 @@ export const COMMON_WINDOW_API = {
    */
   generalSettings: {
     get: function (): Promise<GeneralSettings> {
-      return ipcRenderer.invoke('common.general-settings-get');
+      return hostBridge.invoke('common.general-settings-get');
     },
     set: function (settings: GeneralSettings): void {
-      ipcRenderer.send(`common.general-settings-set`, settings);
+      hostBridge.send('common.general-settings-set', settings);
     },
     onChange: function (
       callback: (newSettings: GeneralSettings, oldSettings: GeneralSettings) => void
     ): () => void {
-      const wrappedCallback = (
-        event: Electron.IpcRendererEvent,
-        newSettings: GeneralSettings,
-        oldSettings: GeneralSettings
-      ) => {
-        callback(newSettings, oldSettings);
-      };
-
-      ipcRenderer.on('common.general-settings-changed', wrappedCallback);
-
-      return () => {
-        ipcRenderer.off('common.general-settings-changed', wrappedCallback);
-      };
+      return hostBridge.on('common.general-settings-changed', callback);
     },
   },
 
@@ -82,38 +70,31 @@ export const COMMON_WINDOW_API = {
    */
   menuSettings: {
     get: function (): Promise<MenuSettings> {
-      return ipcRenderer.invoke('common.menu-settings-get');
+      return hostBridge.invoke('common.menu-settings-get');
     },
     set: function (data: Partial<MenuSettings>): void {
-      ipcRenderer.send('common.menu-settings-set', data);
+      hostBridge.send('common.menu-settings-set', data);
     },
     onChange: function (
       callback: (newSettings: MenuSettings, oldSettings: MenuSettings) => void
     ): () => void {
-      const wrappedCallback = (
-        event: Electron.IpcRendererEvent,
-        newSettings: MenuSettings,
-        oldSettings: MenuSettings
-      ) => {
-        callback(newSettings, oldSettings);
-      };
-
-      ipcRenderer.on('common.menu-settings-changed', wrappedCallback);
-
-      return () => {
-        ipcRenderer.off('common.menu-settings-changed', wrappedCallback);
-      };
+      return hostBridge.on('common.menu-settings-changed', callback);
     },
   },
 
   /** This will return a IconThemesInfo describing all available user icon themes. */
   getIconThemes: (): Promise<IconThemesInfo> => {
-    return ipcRenderer.invoke('common.get-icon-themes');
+    return hostBridge.invoke('common.get-icon-themes');
   },
 
   /** This will return the descriptions of the currently used menu theme. */
   getMenuTheme: (): Promise<MenuThemeDescription> => {
-    return ipcRenderer.invoke('common.get-menu-theme');
+    return hostBridge.invoke('common.get-menu-theme');
+  },
+
+  /** This will return the description of the currently used sound theme. */
+  getSoundTheme: (): Promise<SoundThemeDescription> => {
+    return hostBridge.invoke('common.get-sound-theme');
   },
 
   /**
@@ -121,12 +102,12 @@ export const COMMON_WINDOW_API = {
    * on the current system theme (light or dark).
    */
   getCurrentMenuThemeColors: (): Promise<Record<string, string>> => {
-    return ipcRenderer.invoke('common.get-current-menu-theme-colors');
+    return hostBridge.invoke('common.get-current-menu-theme-colors');
   },
 
   /** This will return whether the dark mode is currently enabled for the system. */
   getIsDarkMode: (): Promise<boolean> => {
-    return ipcRenderer.invoke('common.get-is-dark-mode');
+    return hostBridge.invoke('common.get-is-dark-mode');
   },
 
   /**
@@ -134,49 +115,23 @@ export const COMMON_WINDOW_API = {
    * It returns a function to disconnect the listener.
    */
   darkModeChanged: (callback: (darkMode: boolean) => void): (() => void) => {
-    const wrappedCallback = (event: Electron.IpcRendererEvent, darkMode: boolean) => {
-      callback(darkMode);
-    };
-
-    ipcRenderer.on('common.dark-mode-changed', wrappedCallback);
-
-    return () => {
-      ipcRenderer.off('common.dark-mode-changed', wrappedCallback);
-    };
-  },
-
-  /** This will return the descriptions of the currently used sound theme. */
-  getSoundTheme: (): Promise<SoundThemeDescription> => {
-    return ipcRenderer.invoke('common.get-sound-theme');
-  },
-
-  /** This lists all currently available system icons. */
-  getSystemIcons: (): Promise<Map<string, string>> => {
-    return ipcRenderer.invoke('common.get-system-icons');
+    return hostBridge.on('common.dark-mode-changed', callback);
   },
 
   /**
-   * This method creates a new menu item for a given file. Depending on the file type,
-   * different item types may be used. For example, if the file is a *.desktop file on
-   * Linux, it will create a run-command item. For most other files, it will create a file
-   * item. It may happen that no item could be created.
+   * This method creates a new menu item for a given file. Executables, shortcuts and apps
+   * dragged from the start menu become launch-app items, other files and folders become
+   * open-file items. It may happen that no item could be created.
    *
    * @param file The file for which a menu item should be created.
    * @returns A new menu item for the given file.
    */
   createItemForDroppedFile(file: File): Promise<MenuItem | null> {
-    const name = file.name;
-    const path = webUtils.getPathForFile(file);
-    return ipcRenderer.invoke('common.create-menu-item-for-file', name, path);
-  },
-
-  /**
-   * Increments the given achievement statistic by one.
-   *
-   * @param keys The keys of the statistics to increment.
-   */
-  incrementAchievementStats(keys: AchievementStatsNumberKeys[]): void {
-    ipcRenderer.send('common.increment-achievement-stats', keys);
+    return hostBridge.invokeWithFiles(
+      'common.create-menu-item-for-file',
+      [file],
+      file.name
+    );
   },
 };
 

@@ -20,9 +20,8 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import * as classes from './MenuPreview.module.scss';
 const cx = classNames.bind(classes);
 
-import { useAppState, useMenuSettings } from '../../state';
+import { useAppState, useGeneralSetting, useMenuSettings } from '../../state';
 import {
-  AchievementStatsNumberKeys,
   ChildMenuItem,
   RootMenuItem,
   SubmenuMenuItem,
@@ -67,7 +66,43 @@ export default function MenuPreview() {
   const selectedMenu = useAppState((state) => state.selectedMenu);
   const selectedChildPath = useAppState((state) => state.selectedChildPath);
   const selectChildPath = useAppState((state) => state.selectChildPath);
+  const darkMode = useAppState((state) => state.darkMode);
+  const menuThemes = useAppState((state) => state.menuThemes);
+  const [menuTheme] = useGeneralSetting('menuTheme');
+  const [darkMenuTheme] = useGeneralSetting('darkMenuTheme');
+  const [menuThemeColors] = useGeneralSetting('menuThemeColors');
+  const [darkMenuThemeColors] = useGeneralSetting('darkMenuThemeColors');
+  const [enableDarkModeForMenuThemes] = useGeneralSetting('enableDarkModeForMenuThemes');
   const menus = useMenuSettings((state) => state.menus);
+
+  const activeThemeId =
+    darkMode && enableDarkModeForMenuThemes ? darkMenuTheme : menuTheme;
+  const activeTheme = React.useMemo(
+    () => menuThemes.find((t) => t.id === activeThemeId) || menuThemes[0],
+    [menuThemes, activeThemeId]
+  );
+
+  const previewThemeStyle = React.useMemo(() => {
+    const style: Record<string, string> = {};
+    if (!activeTheme) {
+      return style as React.CSSProperties;
+    }
+    const overrides =
+      (darkMode && enableDarkModeForMenuThemes ? darkMenuThemeColors : menuThemeColors)?.[
+        activeTheme.id
+      ] ?? {};
+    const merged = { ...activeTheme.colors, ...overrides };
+    for (const [key, value] of Object.entries(merged)) {
+      style[`--${key}`] = value;
+    }
+    return style as React.CSSProperties;
+  }, [
+    activeTheme,
+    darkMode,
+    enableDarkModeForMenuThemes,
+    menuThemeColors,
+    darkMenuThemeColors,
+  ]);
   const editMenuItem = useMenuSettings((state) => state.editMenuItem);
   const moveMenuItem = useMenuSettings((state) => state.moveMenuItem);
   const deleteMenuItem = useMenuSettings((state) => state.deleteMenuItem);
@@ -134,6 +169,46 @@ export default function MenuPreview() {
     };
   }, [resetDragState]);
 
+  const quickAddRef = React.useRef<{
+    selectedMenu: number;
+    centerItemPath: number[];
+    childCount: number;
+    hasMenu: boolean;
+  }>({
+    selectedMenu: -1,
+    centerItemPath: [],
+    childCount: 0,
+    hasMenu: false,
+  });
+
+  React.useEffect(() => {
+    const onQuickAdd = (event: Event) => {
+      const typeName = (event as CustomEvent<string>).detail;
+      const ctx = quickAddRef.current;
+      if (!ctx.hasMenu || !typeName) {
+        return;
+      }
+
+      const item = ActionTypeRegistry.getInstance().createItemByType(typeName);
+      if (!item) {
+        return;
+      }
+
+      const targetPath = [...ctx.centerItemPath];
+      const newIndex = ctx.childCount;
+      editMenuItem(ctx.selectedMenu, targetPath, (center: SubmenuMenuItem) => {
+        center.children.push(item);
+        return center;
+      });
+      selectChildPath(targetPath.concat(newIndex));
+    };
+
+    window.addEventListener('kando/quick-add-menu-item', onQuickAdd);
+    return () => {
+      window.removeEventListener('kando/quick-add-menu-item', onQuickAdd);
+    };
+  }, [editMenuItem, selectChildPath]);
+
   const selectedChildPathKey = `${String(selectedMenu)}:${selectedChildPath.join('.')}`;
   const editingSelectedSubmenu = editedSubmenuPath === selectedChildPathKey;
 
@@ -145,41 +220,51 @@ export default function MenuPreview() {
 
   // Sanity check.
   const menu = menus[selectedMenu];
-  if (!menu) {
-    return null;
-  }
 
-  // First, we traverse the children of the current menu according to the selection path
-  // and store the final (sub)menu aka the centerItem. We also store some other
-  // information about the center item. The center item could either be the last item in
-  // selectedChildPath (if a submenu is selected) or the last-but-one item (if a menu item
-  // is selected). If the selection path is empty, the root menu is the center item. We
-  // also store the index of the selected leaf child if it is not a submenu. If the center
-  // is selected, the index is -1.
-  let centerItem: RootMenuItem | SubmenuMenuItem = menu.root;
+  // Traverse the children of the current menu according to the selection path
+  // and store the final (sub)menu aka the centerItem.
+  let centerItem: RootMenuItem | SubmenuMenuItem = menu?.root;
   let selectedChild = -1;
   let showingRootMenu = true;
-  let childAngles = math.computeItemAngles(centerItem.children);
+  let childAngles = centerItem ? math.computeItemAngles(centerItem.children) : [];
   let parentAngle = null;
   const centerItemPath: number[] = [];
 
-  for (let i = 0; i < selectedChildPath.length; i++) {
-    const childIndex = selectedChildPath[i];
-    const child = centerItem.children[childIndex] as ChildMenuItem;
-    const selectedSubmenuShouldOpen =
-      child.type === 'submenu' &&
-      (editingSelectedSubmenu || i < selectedChildPath.length - 1);
+  if (centerItem) {
+    for (let i = 0; i < selectedChildPath.length; i++) {
+      const childIndex = selectedChildPath[i];
+      const child = centerItem.children[childIndex] as ChildMenuItem | undefined;
+      if (!child) {
+        break;
+      }
+      const selectedSubmenuShouldOpen =
+        child.type === 'submenu' &&
+        (editingSelectedSubmenu || i < selectedChildPath.length - 1);
 
-    if (selectedSubmenuShouldOpen) {
-      showingRootMenu = false;
-      parentAngle = utils.getParentAngle(childAngles[childIndex]);
-      centerItem = child;
-      childAngles = math.computeItemAngles(centerItem.children, parentAngle);
-      centerItemPath.push(childIndex);
-    } else {
-      selectedChild = childIndex;
-      break;
+      if (selectedSubmenuShouldOpen) {
+        showingRootMenu = false;
+        parentAngle = utils.getParentAngle(childAngles[childIndex]);
+        centerItem = child;
+        childAngles = math.computeItemAngles(centerItem.children, parentAngle);
+        centerItemPath.push(childIndex);
+      } else {
+        selectedChild = childIndex;
+        break;
+      }
     }
+  }
+
+  React.useEffect(() => {
+    quickAddRef.current = {
+      selectedMenu,
+      centerItemPath,
+      childCount: centerItem?.children?.length ?? 0,
+      hasMenu: Boolean(menu),
+    };
+  });
+
+  if (!menu) {
+    return null;
   }
 
   // If there is a drag operation in progress, we need potentially to render more or less
@@ -512,18 +597,35 @@ export default function MenuPreview() {
     const childIndex = child.index;
     const isSelected = selectedChild >= 0 && selectedChild === childIndex;
     const isSubmenu = centerItem.children[childIndex]?.type === 'submenu';
+    const childAngle = renderedChildAngles[index] ?? 0;
+    const childName = centerItem.children[childIndex]?.name;
+    const normalizedAngle = ((childAngle % 360) + 360) % 360;
+    const labelSide =
+      normalizedAngle >= 340 || normalizedAngle <= 20
+        ? 'top'
+        : normalizedAngle >= 160 && normalizedAngle <= 200
+          ? 'bottom'
+          : normalizedAngle > 180
+            ? 'left'
+            : 'right';
 
     return (
       <div
         key={child.key}
         className={cx({
           child: true,
+          submenu: isSubmenu,
           selected: isSelected,
           dragging: isDraggedChild(child),
           dropping: dropInto && dropIndex === child.index,
         })}
         draggable={child.angle === undefined}
-        style={utils.makeCSSProperties('dir', childDirections[index])}
+        style={utils.makeCSSProperties(
+          'dir',
+          childDirections[index],
+          'angle',
+          childAngle
+        )}
         tabIndex={0}
         onDragEnd={() => {
           resetDragState();
@@ -633,7 +735,28 @@ export default function MenuPreview() {
           }
         }}>
         {child.iconTheme && child.icon ? (
-          <ThemedIcon name={child.icon} size="100%" theme={child.iconTheme} />
+          <div
+            data-tooltip-content={
+              activeTheme?.id === 'rainbow-labels' || isDraggedChild(child)
+                ? undefined
+                : childName
+            }
+            data-tooltip-id="main-tooltip"
+            style={{ width: '100%', height: '100%' }}>
+            <ThemedIcon name={child.icon} size="100%" theme={child.iconTheme} />
+          </div>
+        ) : null}
+        {activeTheme?.id === 'rainbow-labels' && childName ? (
+          <span
+            className={cx({
+              themeLabel: true,
+              labelTop: labelSide === 'top',
+              labelBottom: labelSide === 'bottom',
+              labelLeft: labelSide === 'left',
+              labelRight: labelSide === 'right',
+            })}>
+            {childName}
+          </span>
         ) : null}
         {renderGrandchildren(child, renderedChildAngles[index])}
         {renderChildButtons(child, renderedChildAngles[index])}
@@ -736,13 +859,17 @@ export default function MenuPreview() {
   };
 
   return (
-    <div className={classes.previewArea}>
+    <div
+      className={classes.previewArea}
+      data-menu-theme={activeTheme?.id ?? 'default'}
+      style={previewThemeStyle}>
       <div
         className={classes.preview}
         style={utils.makeCSSProperties(
           'transition-dir',
           math.getDirection(transitionAngle, 1.0)
         )}>
+        <div className={classes.themeBackdrop} />
         <TransitionGroup>
           <CSSTransition
             key={transitionPing ? 'ping' : 'pong'}
@@ -839,20 +966,6 @@ export default function MenuPreview() {
                   );
 
                   if (item) {
-                    const addAchievementStats = (depth: number, siblings: number) => {
-                      const achievementStats: AchievementStatsNumberKeys[] = [
-                        'addedItems',
-                      ];
-                      if (siblings == 12) {
-                        achievementStats.push('addedItemsToFullMenu');
-                      }
-                      if (depth == 4) {
-                        achievementStats.push('addedItemsToDeepMenu');
-                      }
-
-                      window.commonAPI.incrementAchievementStats(achievementStats);
-                    };
-
                     if (dropIndex === -1 && dropInto) {
                       // Create new item in parent.
                       const parentPath = centerItemPath.slice(0, -1);
@@ -861,7 +974,6 @@ export default function MenuPreview() {
                         parentPath,
                         (parent: SubmenuMenuItem) => {
                           parent.children.push(item);
-                          addAchievementStats(parentPath.length, parent.children.length);
                           return parent;
                         }
                       );
@@ -873,10 +985,6 @@ export default function MenuPreview() {
                         submenuPath,
                         (submenu: SubmenuMenuItem) => {
                           submenu.children.push(item);
-                          addAchievementStats(
-                            submenuPath.length,
-                            submenu.children.length
-                          );
                           return submenu;
                         }
                       );
@@ -887,11 +995,6 @@ export default function MenuPreview() {
                         centerItemPath,
                         (center: SubmenuMenuItem) => {
                           center.children.splice(dropIndex, 0, item);
-                          addAchievementStats(
-                            centerItemPath.length,
-                            center.children.length
-                          );
-
                           return center;
                         }
                       );
@@ -933,6 +1036,8 @@ export default function MenuPreview() {
                   center: true,
                   selected: selectedChild === -1,
                 })}
+                data-tooltip-content={centerItem.name}
+                data-tooltip-id="main-tooltip"
                 tabIndex={0}
                 onClick={() => selectCenter()}
                 onKeyDown={(event) => {

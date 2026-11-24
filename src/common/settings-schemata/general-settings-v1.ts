@@ -28,6 +28,9 @@ export const GENERAL_SETTINGS_SCHEMA_V1 = z.object({
    */
   locale: z.string().default('auto'),
 
+  /** If true, KandoAir starts automatically when signing in to Windows. */
+  autoStart: z.boolean().default(false),
+
   /** If true, the introduction dialog will be shown when the settings window is opened. */
   showIntroductionDialog: z.boolean().default(true),
 
@@ -55,6 +58,12 @@ export const GENERAL_SETTINGS_SCHEMA_V1 = z.object({
    */
   enableDarkModeForMenuThemes: z.boolean().default(false),
 
+  /** The ID of the sound theme to use, or 'none' to disable menu sounds. */
+  soundTheme: z.string().default('none'),
+
+  /** The overall volume for menu sounds (0.0 to 1.0). */
+  soundVolume: z.number().min(0).max(1).default(0.5),
+
   /** If disabled, no selection wedges will be drawn. */
   enableSelectionWedges: z.boolean().default(false),
 
@@ -75,18 +84,6 @@ export const GENERAL_SETTINGS_SCHEMA_V1 = z.object({
 
   /** If false, effects based on the current pointer position are disabled. */
   enablePointerReactiveEffects: z.boolean().default(true),
-
-  /** The name of the current sound theme. */
-  soundTheme: z.string().default('none'),
-
-  /** The overall volume of the sound effects. */
-  soundVolume: z.number().min(0).default(0.5),
-
-  /** Set this to false to disable the check for new versions. */
-  enableVersionCheck: z.boolean().default(true),
-
-  /** Whether to silently handle read-only config files. */
-  ignoreWriteProtectedConfigFiles: z.boolean().default(false),
 
   /** The color scheme of the settings window. */
   settingsWindowColorScheme: z.enum(['light', 'dark', 'system']).default('system'),
@@ -128,12 +125,6 @@ export const GENERAL_SETTINGS_SCHEMA_V1 = z.object({
   settingsButtonPosition: z
     .enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
     .default('bottom-right'),
-
-  /**
-   * If true, the menu will introduce a delay of 100ms before opening on Windows to work
-   * around the issue where getting the stylus position is otherwise not possible.
-   */
-  windowsInkWorkaround: z.boolean().default(true),
 
   /**
    * If set to a value greater than 0, items will only be selectable within this radius.
@@ -219,64 +210,16 @@ export const GENERAL_SETTINGS_SCHEMA_V1 = z.object({
    * click. Else the menu will be closed directly.
    */
   rmbSelectsParent: z.boolean().default(false),
-  /**
-   * If disabled, gamepad input will be ignored. This can be useful if the gamepad is not
-   * connected or if the user prefers to use the mouse.
-   */
-  enableGamepad: z.boolean().default(true),
-
-  /**
-   * This button will select the parent item when using a gamepad. Set to -1 to disable.
-   * See https://w3c.github.io/gamepad/#remapping for the mapping of numbers to buttons.
-   */
-  gamepadBackButton: z.number().min(-1).default(1),
-
-  /**
-   * This button will close the menu when using a gamepad. Set to -1 to disable. See
-   * https://w3c.github.io/gamepad/#remapping for the mapping of numbers to buttons.
-   */
-  gamepadCloseButton: z.number().min(-1).default(2),
-
   /** Determines the behavior of pressing the trigger shortcut once the menu is open. */
   sameShortcutBehavior: z
     .enum(['cycle-from-first', 'cycle-from-recent', 're-open', 'close', 'nothing'])
     .default('nothing'),
 
   /**
-   * How long the WLRoots backend will wait before spawning the menu if it can't find the
-   * the pointer and you're using a mouse
-   */
-  wlrootsPointerGetTimeoutMouse: z.number().min(0).default(500),
-
-  /**
-   * How long the WLRoots backend will wait before spawning the menu if it can't find the
-   * the pointer and you're using touch input
-   */
-  wlrootsPointerGetTimeoutTouch: z.number().min(0).default(1500),
-
-  /** How the WLRoots handles reporting pointer position when the pointer get has timed out */
-  wlrootsPointerGetTimeoutDefaultBehavior: z
-    .enum([
-      'top-left',
-      'top-right',
-      'bottom-left',
-      'bottom-right',
-      'center',
-      'previously-reported-position',
-    ])
-    .default('center'),
-
-  /**
    * If enabled, pressing 'cmd + ,' on macOS or 'ctrl + ,' on Linux or Windows will open
    * the settings window. If disabled, the default hotkey will be ignored.
    */
   useDefaultOsShowSettingsHotkey: z.boolean().default(true),
-
-  /** If enabled, achievements are tracked. */
-  enableAchievements: z.boolean().default(true),
-
-  /** If enabled, notifications are shown when achievements are unlocked. */
-  enableAchievementNotifications: z.boolean().default(true),
 });
 
 export type GeneralSettingsV1 = z.infer<typeof GENERAL_SETTINGS_SCHEMA_V1>;

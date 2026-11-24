@@ -1,32 +1,26 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 //   _  _ ____ _  _ ___  ____                                                           //
 //   |_/  |__| |\ | |  \ |  |    This file belongs to Kando, the cross-platform         //
-//   | \_ |  | | \| |__/ |__|    pie menu. Read more on github.com/menu/kando           //
+//   | \_ |  | | \| |__/ |__|    pie menu. Read more on github.com/kando-menu/kando     //
 //                                                                                      //
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+// SPDX-FileCopyrightText: KandoAir contributors
 // SPDX-License-Identifier: MIT
-
-import { matchSorter } from 'match-sorter';
 
 import { IconTheme } from './icon-theme-registry';
 
 /**
  * This class implements an icon theme that uses the Material Symbols Rounded font as
- * icons.
+ * icons. The icon list is attached lazily by the settings window.
  */
 export class MaterialSymbolsTheme implements IconTheme {
-  /** This array contains all available icon names. It is initialized in the constructor. */
-  private iconNames: Array<string> = [];
+  private listIconsFn: (searchTerm: string) => Array<string> = () => [];
 
-  constructor() {
-    // Load material symbols type definition as text file.
-    const string = require('!!raw-loader!material-symbols/index.d.ts').default;
-
-    // Use regex to extract all icon names. All the names are simply enclosed by quotes in
-    // the type definition file above, so the regex is quite simple.
-    this.iconNames = string.match(/"(.*?)"/g).map((name: string) => name.slice(1, -1));
+  /** Attaches the searchable icon list implementation (used by the settings window). */
+  public setListIcons(fn: (searchTerm: string) => Array<string>) {
+    this.listIconsFn = fn;
   }
 
   /** Returns a human-readable name of the icon theme. */
@@ -58,9 +52,7 @@ export class MaterialSymbolsTheme implements IconTheme {
     return {
       type: 'list' as const,
       usesTextColor: true,
-      listIcons: (searchTerm: string) => {
-        return matchSorter(this.iconNames, searchTerm);
-      },
+      listIcons: (searchTerm: string) => this.listIconsFn(searchTerm),
     };
   }
 }

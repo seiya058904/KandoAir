@@ -51,6 +51,12 @@ type RenderData = {
   nodeDiv: HTMLElement;
 
   /**
+   * Cached layer div elements created by the active menu theme, avoiding repeated
+   * `querySelector` calls on every pointer-move frame.
+   */
+  layerDivs?: HTMLElement[];
+
+  /**
    * The visual representation of the connector between this menu item and its active
    * child. Only items with child items will have a connector.
    */

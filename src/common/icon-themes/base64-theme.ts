@@ -10,6 +10,7 @@
 
 import i18next from 'i18next';
 import { IconTheme } from './icon-theme-registry';
+import { toLoadableUrl } from './local-file-url';
 
 /**
  * This class implements an icon theme that allows the user to enter base64 encoded
@@ -33,7 +34,7 @@ export class Base64Theme implements IconTheme {
     containerDiv.classList.add('icon-container');
 
     const img = document.createElement('img');
-    img.src = icon;
+    img.src = toLoadableUrl(icon);
 
     containerDiv.appendChild(img);
 

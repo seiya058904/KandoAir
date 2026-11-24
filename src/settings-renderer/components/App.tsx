@@ -20,7 +20,6 @@ import type { SettingsWindowSidebarWidths } from '../../common';
 import { useAppState, useGeneralSetting, useMenuSettings } from '../state';
 import {
   AboutDialog,
-  AchievementsDialog,
   GeneralSettingsDialog,
   MenuThemesDialog,
   IntroDialog,
@@ -28,7 +27,7 @@ import {
 import { MenuList, CollectionList } from './menu-list';
 import { MenuPreview, PreviewHeader, PreviewFooter } from './menu-preview';
 import { Properties } from './menu-properties';
-import { Note, Sidebar } from './common';
+import { Note, Sidebar, WindowControls } from './common';
 
 import * as classes from './App.module.scss';
 const cx = classNames.bind(classes);
@@ -48,12 +47,18 @@ export default function App() {
 
   // Bind global undo/redo shortcuts.
   React.useEffect(() => {
-    MouseTrap.bind('mod+z', () => useMenuSettings.temporal.getState().undo());
-    MouseTrap.bind('mod+y', () => useMenuSettings.temporal.getState().redo());
+    MouseTrap.bind('mod+z', () => {
+      useMenuSettings.temporal.getState().undo();
+      return false;
+    });
+    MouseTrap.bind(['mod+y', 'mod+shift+z'], () => {
+      useMenuSettings.temporal.getState().redo();
+      return false;
+    });
 
     return () => {
       MouseTrap.unbind('mod+z');
-      MouseTrap.unbind('mod+y');
+      MouseTrap.unbind(['mod+y', 'mod+shift+z']);
     };
   }, []);
 
@@ -163,11 +168,11 @@ export default function App() {
           </div>
         )}
         <GeneralSettingsDialog />
-        <AchievementsDialog />
         <AboutDialog />
         <IntroDialog />
         <MenuThemesDialog />
       </div>
+      <WindowControls />
       <Tooltip
         delayShow={500}
         id="main-tooltip"

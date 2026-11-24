@@ -6,17 +6,21 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+// SPDX-FileCopyrightText: KandoAir contributors
 // SPDX-License-Identifier: MIT
 
 import './index.scss';
 
-import { WindowWithAPIs } from './settings-window-api';
+import { WindowWithAPIs, SETTINGS_WINDOW_API } from './settings-window-api';
+import { COMMON_WINDOW_API } from '../common/common-window-api';
 declare const window: WindowWithAPIs;
+
+// In KandoAir, the APIs are provided by the WebView2 bridge instead of a preload script.
+Object.assign(window, { commonAPI: COMMON_WINDOW_API, settingsAPI: SETTINGS_WINDOW_API });
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import i18next from 'i18next';
-import { enableDragDropTouch } from 'drag-drop-touch';
 
 import App from './components/App';
 import {
@@ -26,8 +30,9 @@ import {
   getSelectedChild,
 } from './state';
 import { IconThemeRegistry } from '../common/icon-themes/icon-theme-registry';
-import { IPCMenuManager } from './utils/ipc-menu-manager';
 import { ActionTypeRegistry } from '../common/action-type-registry';
+import KeyMapper from '../common/key-mapper';
+import { attachIconPickerData } from './utils/icon-picker-data';
 
 /**
  * This file is the main entry point for Kando's settings renderer process. It is
@@ -38,7 +43,7 @@ import { ActionTypeRegistry } from '../common/action-type-registry';
 
 // Wire up the the settings --------------------------------------------------------------
 
-// We need some information from the main process before we can start.
+// We need some information from the host process before we can start.
 Promise.all([
   window.commonAPI.getLocales(),
   window.commonAPI.generalSettings.get(),
@@ -46,12 +51,9 @@ Promise.all([
   window.commonAPI.getIsDarkMode(),
   window.settingsAPI.getBackendInfo(),
   window.settingsAPI.getVersionInfo(),
-  window.settingsAPI.getSystemInfo(),
-  window.settingsAPI.getInstalledApps(),
   window.settingsAPI.getAllMenuThemes(),
   window.settingsAPI.getAllSoundThemes(),
   window.settingsAPI.getCurrentMenu(),
-  window.settingsAPI.getLevelProgress(),
 ]).then(
   async ([
     locales,
@@ -60,12 +62,9 @@ Promise.all([
     darkMode,
     backendInfo,
     versionInfo,
-    systemInfo,
-    installedApps,
     menuThemes,
     soundThemes,
     selectedMenu,
-    levelProgress,
   ]) => {
     // Initialize i18next with the current locale and the english fallback locale.
     await i18next.init({
@@ -86,10 +85,15 @@ Promise.all([
     // This will be called whenever the icons should be reloaded.
     window.settingsAPI.onReloadIconThemes(async () => {
       await IconThemeRegistry.getInstance().init();
+      attachIconPickerData();
     });
 
-    // Initialize the icon theme registry.
+    // Initialize the keyboard layout map so shortcut recording works with IMEs.
+    KeyMapper.init();
+
+    // Initialize the icon theme registry and attach searchable icon lists.
     await IconThemeRegistry.getInstance().init();
+    attachIconPickerData();
 
     // Validate State --------------------------------------------------------------------
 
@@ -116,6 +120,10 @@ Promise.all([
       }
 
       // Also make sure that the selected collection is valid.
+      if (selectedCollection < -1) {
+        selectCollection(-1);
+        return;
+      }
       if (selectedCollection >= collections.length) {
         selectCollection(collections.length - 1);
         return;
@@ -124,7 +132,6 @@ Promise.all([
       // Make sure that the selected child path is valid.
       if (selectedMenu >= 0) {
         const selectedItem = getSelectedChild(menus, selectedMenu, selectedChildPath);
-
         if (!selectedItem) {
           selectParent();
           return;
@@ -135,16 +142,7 @@ Promise.all([
     useAppState.subscribe(validateState);
     useMenuSettings.subscribe(validateState);
 
-    // Initialize IPCMenuManager globally and attach to window ---------------------------
-
-    try {
-      window.ipcAPI = new IPCMenuManager(systemInfo.ipcPort, systemInfo.ipcApiVersion);
-      await window.ipcAPI.init();
-    } catch (e) {
-      console.error('Failed to initialize IPCMenuManager:', e);
-    }
-
-    // Initialize the item type registry -------------------------------------------------
+    // Initialize the action type registry -----------------------------------------------
 
     ActionTypeRegistry.init(backendInfo);
 
@@ -152,63 +150,65 @@ Promise.all([
 
     // Make sure to not record the initial state of the menu settings in the undo history.
     useGeneralSettings.setState(generalSettings);
-
     useMenuSettings.temporal.getState().pause();
     useMenuSettings.setState(menuSettings);
     useMenuSettings.temporal.getState().resume();
-
     useAppState.setState({
       backendInfo,
       versionInfo,
-      systemInfo,
-      installedApps,
       darkMode,
       menuThemes,
       soundThemes,
       selectedMenu,
-      levelProgress,
     });
 
-    // Update the state whenever the settings change in the main process.
+    // Update the state whenever the settings change in the host process, suppressing
+    // echo-back to the host inside the Zustand subscribers.
+    let applyingFromHost = false;
     window.commonAPI.generalSettings.onChange((newSettings) => {
-      useGeneralSettings.setState(newSettings);
+      applyingFromHost = true;
+      try {
+        useGeneralSettings.setState(newSettings);
+      } finally {
+        applyingFromHost = false;
+      }
     });
 
     window.commonAPI.menuSettings.onChange((newSettings) => {
-      useMenuSettings.setState(newSettings);
+      applyingFromHost = true;
+      try {
+        useMenuSettings.setState(newSettings);
+      } finally {
+        applyingFromHost = false;
+      }
     });
 
     window.commonAPI.darkModeChanged((darkMode) => {
       useAppState.setState({ darkMode });
     });
 
-    window.settingsAPI.onLevelProgressChanged((levelProgress) => {
-      useAppState.setState({ levelProgress });
+    window.settingsAPI.onMenuThemesChanged((menuThemes) => {
+      useAppState.setState({ menuThemes });
     });
 
-    window.settingsAPI.onShowAchievementsDialog(() => {
-      console.log('Showing achievements dialog');
-      useAppState.setState({ achievementsDialogVisible: true });
+    window.settingsAPI.onSoundThemesChanged((soundThemes) => {
+      useAppState.setState({ soundThemes });
     });
 
+    // Send the settings to the host process whenever they change.
     useGeneralSettings.subscribe((newSettings) => {
-      window.commonAPI.generalSettings.set(newSettings);
+      if (!applyingFromHost) {
+        window.commonAPI.generalSettings.set(newSettings);
+      }
     });
 
     useMenuSettings.subscribe((newSettings) => {
-      window.commonAPI.menuSettings.set({
-        menus: newSettings.menus,
-        collections: newSettings.collections,
-      });
-    });
-
-    // HTML5 drag and drop support is not available on touch devices. So we use a
-    // polyfill which translates touch events to drag and drop events. This is not
-    // perfect as it for instance does not support drag and drop to the desktop, but it
-    // works for most use cases.
-    enableDragDropTouch(document.body, document.body, {
-      forceListen: true,
-      allowDragScroll: false,
+      if (!applyingFromHost) {
+        window.commonAPI.menuSettings.set({
+          menus: newSettings.menus,
+          collections: newSettings.collections,
+        });
+      }
     });
 
     // Make sure to never open files or links by accident when dragging them over the
@@ -223,5 +223,17 @@ Promise.all([
         <App />
       </React.StrictMode>
     );
+
+    // The installed applications are only needed by the app picker and the icon picker.
+    // The host enumerates them on demand, so we load them in the background.
+    window.settingsAPI
+      .getInstalledApps()
+      .then((installedApps) => {
+        useAppState.setState({ installedApps });
+        IconThemeRegistry.getInstance().setSystemIconNames(
+          installedApps.map((app) => app.name)
+        );
+      })
+      .catch((error) => console.error('Failed to load the installed apps:', error));
   }
 );

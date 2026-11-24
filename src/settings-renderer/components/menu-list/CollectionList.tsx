@@ -214,12 +214,14 @@ export default function CollectionList() {
               />
               <div
                 className={classes.deleteButton}
-                data-tooltip-content="Delete collection"
+                data-tooltip-content={i18next.t('settings.delete-collection')}
                 data-tooltip-id="main-tooltip"
                 onClick={(event) => {
                   event.stopPropagation();
                   deleteCollection(collection.index);
-                  selectCollection(selectedCollection - 1);
+                  if (selectedCollection >= collection.index) {
+                    selectCollection(Math.max(-1, selectedCollection - 1));
+                  }
                 }}>
                 <TbTrash />
               </div>

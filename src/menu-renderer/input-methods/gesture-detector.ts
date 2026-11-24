@@ -129,11 +129,17 @@ export class GestureDetector extends EventEmitter {
             this.timeout = null;
           }
 
-          // Now compute the angle between S->E and E->M.
-          const angle = Math.acos(
-            ((tipDir.x / tipLength) * strokeDir.x) / strokeLength +
-              ((tipDir.y / tipLength) * strokeDir.y) / strokeLength
+          // Now compute the angle between S->E and E->M. Clamp to [-1, 1] so floating
+          // point rounding on exact 180° hairpin turns never yields NaN.
+          const cosine = Math.max(
+            -1,
+            Math.min(
+              1,
+              ((tipDir.x / tipLength) * strokeDir.x) / strokeLength +
+                ((tipDir.y / tipLength) * strokeDir.y) / strokeLength
+            )
           );
+          const angle = Math.acos(cosine);
 
           //  Emit the selection events if it exceeds the configured threshold. We pass
           //  the coordinates of E for the selection event.

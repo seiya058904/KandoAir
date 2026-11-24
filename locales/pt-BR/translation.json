@@ -1,19 +1,19 @@
 {
     "backends": {
         "gnome": {
-            "error": "Não foi possível se conectar a extensão do GNOME Shell \"Kando Integration\". Você pode obtê-la a partir daqui: {{link}}"
+            "error": "Não foi possível se conectar a extensão do GNOME Shell \"KandoAir Integration\". Você pode obtê-la a partir daqui: {{link}}"
         },
         "hyprland": {
-            "shortcut-info": "Kando não pode atribuir atalhos globais diretamente no Hyprland. Ao invés disso, especifique um ID de atalho aqui e atribua um atalho em seu hyprland.conf com algo como \"bind = CTRL, Space, global, kando:example-menu\". Substitua example-menu pelo ID escolhido aqui."
+            "shortcut-info": "KandoAir não pode atribuir atalhos globais diretamente no Hyprland. Ao invés disso, especifique um ID de atalho aqui e atribua um atalho em seu hyprland.conf com algo como \"bind = CTRL, Space, global, kando:example-menu\". Substitua example-menu pelo ID escolhido aqui."
         },
         "kde-wayland": {
-            "shortcut-info": "Kando não pode atribuir atalhos globais diretamente no KDE/Wayland. Ao invés disso, especifique um ID de atalho aqui e procure por ele na seção de atalhos globais do KWin nas configurações de sistema do seu KDE. Lá você pode atribuir um atalho que irá abrir esse menu."
+            "shortcut-info": "KandoAir não pode atribuir atalhos globais diretamente no KDE/Wayland. Ao invés disso, especifique um ID de atalho aqui e procure por ele na seção de atalhos globais do KWin nas configurações de sistema do seu KDE. Lá você pode atribuir um atalho que irá abrir esse menu."
         },
         "niri": {
             "shortcut-info": "O Niri ainda não suporta atalhos globais. Mas você pode abrir este menu usando 'kando --menu \"Nome do Menu\"' na linha de comando ou na configuração do Niri."
         },
         "kde": {
-            "error": "Não foi possível conectar ao plugin KWin Kando. Você pode obtê-lo aqui: {{link}}"
+            "error": "Não foi possível conectar ao plugin KWin KandoAir. Você pode obtê-lo aqui: {{link}}"
         }
     },
     "example-menu": {
@@ -57,10 +57,6 @@
         "previous-workspace": "Espaço de Trabalho Anterior",
         "web-links": {
             "google": "Google",
-            "kando-on-discord": "Kando em Discord",
-            "kando-on-github": "Kando em GitHub",
-            "kando-on-kofi": "Kando em Ko-fi",
-            "kando-on-youtube": "Kando no YouTube",
             "submenu": "Links da Web"
         },
         "windows": {
@@ -73,9 +69,9 @@
         }
     },
     "main": {
-        "failed-to-start-header": "Kando não conseguiu se iniciar",
+        "failed-to-start-header": "KandoAir não conseguiu se iniciar",
         "inhibit-shortcuts": "Desabilitar os atalhos temporariamente",
-        "new-version-notification-header": "Uma nova versão do Kando está disponível!",
+        "new-version-notification-header": "Uma nova versão do KandoAir está disponível!",
         "quit": "Sair",
         "show-settings": "Mostrar configurações",
         "un-inhibit-shortcuts": "Reativar atalhos",
@@ -105,11 +101,11 @@
             "tip-3": "Clique [nesse link]({{link}}) para ver todos os nomes de chave válidos."
         },
         "macro": {
-            "tip-1": "Por padrão, Kando adiciona 10ms de delay antes de cada evento de tecla. Você pode mudar isso com a propriedade \"delay\".",
+            "tip-1": "Por padrão, KandoAir adiciona 10ms de delay antes de cada evento de tecla. Você pode mudar isso com a propriedade \"delay\".",
             "tip-2": "Você pode editar esse macro manualmente. Isso é útil se você quer ajustar o tempo das teclas."
         },
         "settings": {
-            "tip-1": "Está ação abrirá a janela de configurações Kando."
+            "tip-1": "Está ação abrirá a janela de configurações KandoAir."
         },
         "submenu": {
             "description": "Contém outros itens de menu.",
@@ -147,10 +143,9 @@
         "about-dialog": {
             "chrome-version": "Versão Chrome",
             "electron-version": "Versão Electron",
-            "kando-backend": "Back-end do Kando",
-            "kando-version": "Versão do Kando",
-            "message": "Eu estou criando o Kando por pura paixão. Se você gostar de usá-lo tanto quanto eu adoro criá-lo, você pode [me pagar um café]({{link}})!\n\n💖 Simon",
-            "title": "Sobre o Kando",
+            "kando-backend": "Back-end do KandoAir",
+            "kando-version": "Versão do KandoAir",
+            "title": "Sobre o KandoAir",
             "check-latest-release": "Ver a versão mais recente",
             "read-release-notes": "Ler notas da versão"
         },
@@ -169,7 +164,7 @@
             "reload-menu-theme-tooltip": "As alterações CSS serão aplicadas imediatamente. Para alterações feitas no arquivo theme.json, você precisa reabrir o menu.",
             "reload-sound-theme": "Recarregar tema de som atual",
             "reload-note": "Quando você recarregar o tema do menu, mudanças no CSS serão aplicadas mesmo se um menu está sendo exibido. Para mudanças feitas no arquivo theme.json, você precisa reabrir o menu.",
-            "dev-tools-note": "Kando utiliza duas janelas: Uma para o menu e outra para as configurações. Você pode abrir as ferramentas de desenvolvedor para inspecionar ambas as janelas separadamente.",
+            "dev-tools-note": "KandoAir utiliza duas janelas: Uma para o menu e outra para as configurações. Você pode abrir as ferramentas de desenvolvedor para inspecionar ambas as janelas separadamente.",
             "settings-button-position": "Posição do botão de configurações",
             "invisible-settings-button-info": "Você ainda pode usar o botão, ele irá aparecer quando você mover o mouse sobre ele.",
             "settings-button-position-info": "Escolhe o canto da tela onde o botão de configurações será exibido.",
@@ -180,12 +175,12 @@
             "black": "Preto",
             "color": "Cor",
             "white": "Branco",
-            "lazy-initialization-info": "Se ativado, a janela de menu irá ser criada quando o menu for aberto pela primeira vez. Isso fará com que a primeira abertura do menu seja um pouco lenta, mas pode evitar problemas quando o Kando é iniciado muito rápido durante o login. Padrão é desabilitado.",
+            "lazy-initialization-info": "Se ativado, a janela de menu irá ser criada quando o menu for aberto pela primeira vez. Isso fará com que a primeira abertura do menu seja um pouco lenta, mas pode evitar problemas quando o KandoAir é iniciado muito rápido durante o login. Padrão é desabilitado.",
             "enable-turbo-mode": "Ativar Modo Turbo",
             "move-pointer-to-menu-center": "Move o ponteiro para o centro do menu",
             "enable-gamepad-support": "Ativar suporte à controles",
             "enable-gamepad-support-info": "Se marcado, você poderá utilizar um controle conectado para controlar o menu.",
-            "learn-how-to-add-sound-themes": "Veja como adicionar novos temas de sons ao Kando [aqui]({{link}})!",
+            "learn-how-to-add-sound-themes": "Veja como adicionar novos temas de sons ao KandoAir [aqui]({{link}})!",
             "sound-theme": "Tema de som",
             "volume-info": "O volume geral do tema de som. Padrão é 0,5.",
             "advanced-menu-options": "Opções de menu avançadas",
@@ -200,7 +195,7 @@
             "gesture-pause-timeout-info": "Pare o gesto por esse tempo para ativar a seleção. Padrão é 100ms.",
             "menu-window-dev-tools": "Inspecionar menu",
             "settings-window-dev-tools": "Inspecionar configurações",
-            "message": "Todas as configurações do Kando são armazenadas em um arquivo JSON que você pode editar, compartilhar, ou fazer backup. Clique [aqui]({{link}}) para abrir o local do arquivo config.json.",
+            "message": "Todas as configurações do KandoAir são armazenadas em um arquivo JSON que você pode editar, compartilhar, ou fazer backup. Clique [aqui]({{link}}) para abrir o local do arquivo config.json.",
             "sakura-system": "Sakura sistema",
             "sakura-dark": "Sakura escuro",
             "enable-marking-mode-info": "Com o Modo de Marcação ativado, você pode selecionar os itens arrastando o mouse sobre eles.",
@@ -210,7 +205,7 @@
             "none": "Nenhum",
             "check-for-new-versions": "Verificar novas versões",
             "app-behavior": "Comportamento do aplicativo",
-            "check-for-new-versions-info": "Se ativado, o Kando mostrará uma notificação quando uma nova versão estiver disponível.",
+            "check-for-new-versions-info": "Se ativado, o KandoAir mostrará uma notificação quando uma nova versão estiver disponível.",
             "invisible-settings-button": "Botão de configurações invisível",
             "top-left": "Superior esquerdo",
             "top-right": "Superior direito",
@@ -248,9 +243,9 @@
             "auto-language": "Usar linguagem do sistema",
             "app-settings": "Configurações do aplicativo",
             "localization-label": "Linguagem",
-            "localization-info": "Reinicie o Kando para aplicar o novo idioma.",
+            "localization-info": "Reinicie o KandoAir para aplicar o novo idioma.",
             "hardware-acceleration": "Habilitar aceleração de hardware",
-            "hardware-acceleration-info": "Esta opção pode melhorar o desempenho do aplicativo, mas também pode causar alguns artefatos de renderização. Você precisa reiniciar o Kando para aplicar esta configuração.",
+            "hardware-acceleration-info": "Esta opção pode melhorar o desempenho do aplicativo, mas também pode causar alguns artefatos de renderização. Você precisa reiniciar o KandoAir para aplicar esta configuração.",
             "keep-input-focus": "Mantenha o aplicativo ativo focado",
             "keep-input-focus-info": "Se ativado, o menu não receberá o foco da entrada do teclado ao ser aberto. Isso desativa o Modo Turbo, mas pode ser útil se você precisar que outros aplicativos permaneçam em foco enquanto o menu estiver aberto.",
             "press-again-behavior": "Comportamento de pressionar atalho novamente",
@@ -259,7 +254,7 @@
             "cycle-from-first": "Mostrar próximo menu (começar do início)",
             "cycle-from-recent": "Mostrar próximo menu (continuar do último)",
             "close-menu": "Fechar menu",
-            "enable-achievements-info": "Se ativado, o Kando acompanhará seu progresso em direção às conquistas.",
+            "enable-achievements-info": "Se ativado, o KandoAir acompanhará seu progresso em direção às conquistas.",
             "enable-achievements": "Acompanhar conquistas",
             "enable-achievement-notifications-info": "Se ativado, as notificações são exibidas quando as conquistas são desbloqueadas.",
             "enable-achievement-notifications": "Mostrar notificações de conquista",
@@ -287,9 +282,8 @@
             "restore-settings": "Restaurar o config.json…",
             "interaction-modes": "Modos de Interação",
             "input-options": "Opções de Entrada",
-            "learn-interaction-mode": "Saiba mais sobre os modos de interação do Kando [aqui]({{link}})!",
             "backup-menus-note": "Isso fará o backup ou a restauração de todos os seus menus de uma só vez. Isso inclui todos os seus atalhos configurados, layouts de menu e suas coleções de menus.",
-            "backup-settings-note": "Isso fará o backup ou a restauração das configurações do Kando, que incluem todas as suas configurações gerais e a configuração do tema do menu.",
+            "backup-settings-note": "Isso fará o backup ou a restauração das configurações do KandoAir, que incluem todas as suas configurações gerais e a configuração do tema do menu.",
             "settings-dialog-and-tray-icon": "Caixa de diálogo de configurações e ícone da bandeja",
             "achievements": "Conquistas",
             "trigger-center-click-on-key-release-info": "Isso acionará o fluxo de trabalho de clique central quando uma tecla for solta ao passar o mouse sobre o centro de um menu.",
@@ -303,12 +297,11 @@
             "search-placeholder": "Pesquisar ícones…",
             "url-example": "URL de exemplo:",
             "file-example": "arquivo: URI de exemplo:",
-            "hint": "Veja [aqui]({{link}}) como adicionar ou criar seus próprios temas de ícones.",
             "base64-hint": "Ícones codificados em base64 são uma forma fácil de incluir qualquer tipo de ícone em seus menus. Você pode usar um serviço como [www.base64-image.de]({{link}}) para converter qualquer imagem em um texto codificado em base64. Funciona até para gifs animados!",
             "reload-button-tooltip": "Recarregar todos os temas de ícones"
         },
         "introduction-dialog": {
-            "title": "Bem-vindo ao Kando!",
+            "title": "Bem-vindo ao KandoAir!",
             "slide5-text": "Para **navegar de volta**, você pode clicar na borda do item pai ou no centro do menu.",
             "slide6-text": "Desse jeito, você pode explorar a estrutura do menu rapidamente.",
             "slide7-text": "Clique e arraste sobre um item para entrar no Modo de Marcação. **Se você parar o movimento do ponteiro ou fizer uma curva, o submenu atual irá abrir!** Lembre o caminho para um item e desenhe ele com um movimentos expressivos de zig-zag.",
@@ -319,20 +312,18 @@
             "chapter3": "Modo Turbo",
             "chapter4": "Próximos passos",
             "chapter5": "Obtendo ajuda",
-            "slide12-text": "Kando é altamente customizável. Você pode abrir aplicações, arquivos, executar macros de teclado, e muitas outras coisas. Você pode [mudar o estilo do menu]({{link1}}), [adicionar temas de ícones]({{link2}}) e até [utilizar sons]({{link3}}) nos seus menus!",
-            "slide13-text": "Se você precisar de ajuda em algum momento, fique à vontade para entrar no nosso [Servidor do Discord]({{link1}}) ou veja a [documentação]({{link2}})!",
+            "slide12-text": "KandoAir é altamente customizável. Você pode abrir aplicações, arquivos, executar macros de teclado, e muitas outras coisas. Você pode [mudar o estilo do menu]({{link1}}), [adicionar temas de ícones]({{link2}}) e até [utilizar sons]({{link3}}) nos seus menus!",
             "show-again": "Mostrar esta janela novamente",
-            "slide1-text": "Passe por esses slides para ver o que o Kando pode oferecer a você! Você pode utilizar as marcações de capítulo na esquerda para pular para uma parte específica da introdução.",
-            "slide2-text-standard": "Se você iniciou o Kando pela primeira vez, você pode abrir o menu de exemplo utilizando Ctrl+Espaço. Feche com a tecla Esc ou com o botão direito do seu mouse em qualquer lugar da tela.",
-            "slide1-title": "Kando oferece uma forma única e eficiente de interagir com o seu computador.",
+            "slide1-text": "Passe por esses slides para ver o que o KandoAir pode oferecer a você! Você pode utilizar as marcações de capítulo na esquerda para pular para uma parte específica da introdução.",
+            "slide2-text-standard": "Se você iniciou o KandoAir pela primeira vez, você pode abrir o menu de exemplo utilizando Ctrl+Espaço. Feche com a tecla Esc ou com o botão direito do seu mouse em qualquer lugar da tela.",
+            "slide1-title": "KandoAir oferece uma forma única e eficiente de interagir com o seu computador.",
             "slide2-title": "Abra o menu!",
             "slide3-hint1": "Você também pode clicar aqui para fechar o menu.",
             "slide3-hint2": "Clique em qualquer lugar aqui para selecionar o item.",
-            "slide3-text": "No Kando, **toda sua tela é um alvo clicável**! Você não precisa apontar para os ícones, você pode clicar em qualquer lugar dentro da borda de um item. Isso torna a seleção de itens muito mais eficiente.",
+            "slide3-text": "No KandoAir, **toda sua tela é um alvo clicável**! Você não precisa apontar para os ícones, você pode clicar em qualquer lugar dentro da borda de um item. Isso torna a seleção de itens muito mais eficiente.",
             "slide4-text": "Um submenu irá **sempre** abrir no ponteiro do seu mouse. Você **não precisa esperar que a animação acabe**. Confie na sua memória muscular e continue com sua seleção!",
             "slide5-hint": "Clique em qualquer lugar aqui para ir um nível acima.",
             "slide11-text": "**Não tenha medo de seleções acidentais!** Ações apenas são executadas assim que você soltar o botão do mouse no Modo de Marcação ou com uma tecla do teclado no Modo Turbo. Use isto para explorar o menu!",
-            "slide2-text-no-shortcuts": "Se você iniciou o Kando pela primeira vez, você [talvez precise realizar alguns passos extras no Linux para garantir o funcionamento das teclas globalmente]({{link}}). Uma vez que esteja funcionando, você pode fechar o menu com a tecla Esc ou com o botão direito do seu mouse.",
             "slide9-text": "Se você **manter uma tecla pressionada** (como _Ctrl_,_Shift_, ou _Alt_) após abrir o menu, você poderá realizar seleções apenas movendo o ponteiro. Nenhum clique ou arrastar é necessário.",
             "slide7-title": "Se torne rápido: Modo de Marcação",
             "slide9-title": "Seja incrivelmente rápido: Modo Turbo",
@@ -430,7 +421,6 @@
         "undo": "Desfazer",
         "hover-mode": "Modo Hover",
         "area-condition-info": "Exibe o menu apenas se o ponteiro está em uma certa área da tela. A área é dada em pixels relativo ao canto superior esquerdo do seu monitor principal. Se você deixar esse campo vazio, a área não é atribuída nessa direção.",
-        "menu-behavior-info": "Antes de habilitar essas opções, nós recomendamos entender porque nós gostamos do comportamento padrão do Kando [aqui]({{link}})!",
         "app-condition-placeholder": "Nome do aplicativo",
         "app-condition-tooltip": "Selecionar um aplicativo",
         "window-condition-placeholder": "Título da janela",
@@ -445,7 +435,7 @@
         "duplicate-menu": "Duplicar menu",
         "add-menu-item-hint": "Arraste este item para adicioná-lo ao menu acima!",
         "app-picker": {
-            "hint": "Você também pode arrastar e soltar um aplicativo do seu menu Iniciar para o editor de menu do Kando!",
+            "hint": "Você também pode arrastar e soltar um aplicativo do seu menu Iniciar para o editor de menu do KandoAir!",
             "search-placeholder": "Pesquisar um aplicativo…",
             "use-selected": "Usar selecionado"
         },
@@ -476,7 +466,7 @@
         "restore-menu-settings-success-message": "Seus menus e coleções de menus foram restaurados a partir do arquivo de backup.",
         "export-menu-error-title": "Falha ao exportar o menu",
         "import-menu-error-title": "Falha ao importar o menu",
-        "import-menu-error-message": "O arquivo selecionado não pôde ser importado. Ele não contém um menu exportado do Kando válido.",
+        "import-menu-error-message": "O arquivo selecionado não pôde ser importado. Ele não contém um menu exportado do KandoAir válido.",
         "import-menu": "Importar menu",
         "workflow-editor": {
             "add-action": "Adicionar Ação",
@@ -535,8 +525,8 @@
             "choose-app": "Escolha um aplicativo…",
             "placeholder": "Insira algum comando…",
             "isolated": "Executar isoladamente",
-            "isolated-info": "Isto irá executar o comando em um ambiente limpo, não herdando nenhuma variável de ambiente do Kando. Isso pode ajudar com comandos que não iniciam corretamente.",
-            "detached-info": "Isto irá desconectar o comando do Kando, fazendo com que continue executando mesmo se o Kando estiver fechado. Desabilitar isso pode ajudar a resolver problemas com comandos que não iniciam corretamente.",
+            "isolated-info": "Isto irá executar o comando em um ambiente limpo, não herdando nenhuma variável de ambiente do KandoAir. Isso pode ajudar com comandos que não iniciam corretamente.",
+            "detached-info": "Isto irá desconectar o comando do KandoAir, fazendo com que continue executando mesmo se o KandoAir estiver fechado. Desabilitar isso pode ajudar a resolver problemas com comandos que não iniciam corretamente.",
             "detached": "Executar separadamente"
         },
         "open-menu": {
@@ -545,7 +535,7 @@
         },
         "open-settings": {
             "name": "Abrir Ajustes",
-            "description": "Abre a janela de configurações do Kando."
+            "description": "Abre a janela de configurações do KandoAir."
         },
         "open-uri": {
             "name": "Abrir URI",
@@ -586,12 +576,12 @@
         },
         "inhibit-shortcuts": {
             "name": "Desativar Atalhos",
-            "description": "Desativa todos os atalhos do Kando pelo resto da execução deste fluxo de trabalho."
+            "description": "Desativa todos os atalhos do KandoAir pelo resto da execução deste fluxo de trabalho."
         },
         "focus-window": {
             "name": "Janela de Foco",
             "description": "Traz a janela especificada para o primeiro plano. Você pode usar isso para focar o aplicativo de destino antes de executar um atalho de teclado ou uma ação de macro.",
-            "hint": "O Kando tentará encontrar uma janela que corresponda ao título ou nome do aplicativo fornecido (ou ambos). Você pode usar expressões regulares para uma correspondência mais poderosa, por exemplo, /firefox|chrome/i para corresponder a qualquer navegador web."
+            "hint": "O KandoAir tentará encontrar uma janela que corresponda ao título ou nome do aplicativo fornecido (ou ambos). Você pode usar expressões regulares para uma correspondência mais poderosa, por exemplo, /firefox|chrome/i para corresponder a qualquer navegador web."
         }
     },
     "achievements": {
@@ -652,7 +642,7 @@
             "description": "Restaurar um backup {{n}} vezes."
         },
         "added-items": {
-            "name": "Andarilho do Kando {{tier}}",
+            "name": "Andarilho do KandoAir {{tier}}",
             "description": "Crie {{n}} itens no editor de menu."
         },
         "deleted-all-menus": {
@@ -668,8 +658,8 @@
             "description": "Adicionar um item de menu a um submenu de quatro níveis de profundidade."
         },
         "sponsors-viewed": {
-            "name": "Guardião de Kando",
-            "description": "Considere se tornar um patrocinador da Kando."
+            "name": "Guardião de KandoAir",
+            "description": "Considere se tornar um patrocinador da KandoAir."
         },
         "menu-themes-selected": {
             "name": "Caminho de Aesthete",
@@ -677,7 +667,7 @@
         },
         "tutorial-viewed": {
             "name": "A Jornada Começa",
-            "description": "Conclua o tutorial de introdução ao Kando."
+            "description": "Conclua o tutorial de introdução ao KandoAir."
         },
         "many-selections-streak": {
             "name": "Mãos de Relâmpago {{tier}}",

@@ -1,13 +1,13 @@
 {
     "backends": {
         "gnome": {
-            "error": "Yhdistäminen Kando-integraation Gnome-laajennukseen ei onnistunut. Hanki laajennus täältä: {{link}}"
+            "error": "Yhdistäminen KandoAir-integraation Gnome-laajennukseen ei onnistunut. Hanki laajennus täältä: {{link}}"
         },
         "hyprland": {
-            "shortcut-info": "Kando ei voi suoraan asettaa Hyprlandin globaaleja pikanäppäimiä. Sen sijaan määritä pikanäppäintunnus tähän ja aseta pikanäppäin hyprland.conf -tiedostossasi jollain tavalla, kuten \"bind = CTRL, Space, global, kando:esimerkkivalikko\". Korvaa 'esimerkkivalikko' tässä valitulla tunnuksella."
+            "shortcut-info": "KandoAir ei voi suoraan asettaa Hyprlandin globaaleja pikanäppäimiä. Sen sijaan määritä pikanäppäintunnus tähän ja aseta pikanäppäin hyprland.conf -tiedostossasi jollain tavalla, kuten \"bind = CTRL, Space, global, kando:esimerkkivalikko\". Korvaa 'esimerkkivalikko' tässä valitulla tunnuksella."
         },
         "kde-wayland": {
-            "shortcut-info": "Kando ei voi suoraan asettaa järjestelmän pikanäppäimiä KDE/Waylandissa. Määritä sen sijaan pikanäppäintunnus tästä ja etsi se sitten KDE:n järjestelmäasetuksissa olevien järjestelmän pikanäppäinten KWin-osiosta. Siellä voit määrittää pikanäppäimen, joka avaa tämän valikon."
+            "shortcut-info": "KandoAir ei voi suoraan asettaa järjestelmän pikanäppäimiä KDE/Waylandissa. Määritä sen sijaan pikanäppäintunnus tästä ja etsi se sitten KDE:n järjestelmäasetuksissa olevien järjestelmän pikanäppäinten KWin-osiosta. Siellä voit määrittää pikanäppäimen, joka avaa tämän valikon."
         },
         "niri": {
             "shortcut-info": "Niri ei vielä tue globaaleja pikanäppäimiä. Voit kuitenkin avata tämän valikon käyttäen 'kando --menu \"valikon nimi\"' komentoriviltä tai Nirin config-tiedostosta."
@@ -54,10 +54,6 @@
         "previous-workspace": "Edellinen työtila",
         "web-links": {
             "google": "Google",
-            "kando-on-discord": "Kando Discordissa",
-            "kando-on-github": "Kando GitHubissa",
-            "kando-on-kofi": "Kando Ko-fi:ssa",
-            "kando-on-youtube": "Kando YouTubessa",
             "submenu": "Verkkolinkit"
         },
         "windows": {
@@ -71,7 +67,7 @@
     },
     "main": {
         "failed-to-start-header": "Kandon käynnistäminen epäonnistui",
-        "new-version-notification-header": "Uusi Kando-versio on saatavilla!",
+        "new-version-notification-header": "Uusi KandoAir-versio on saatavilla!",
         "quit": "Lopeta",
         "show-settings": "Näytä asetukset",
         "new-version-notification-body": "Hanki se osoitteesta {{link}}.",
@@ -91,7 +87,7 @@
             "tip-1": "Voit käyttää tätä kohdetyyppiä avaamaan tiedostoja tai kansioita."
         },
         "macro": {
-            "tip-1": "Oletusarvon mukaan Kando lisää kymmenen millisekunnin viiveen ennen jokaista näppäintapahtumaa. Voit muuttaa tätä \"viive\"-ominaisuudella."
+            "tip-1": "Oletusarvon mukaan KandoAir lisää kymmenen millisekunnin viiveen ennen jokaista näppäintapahtumaa. Voit muuttaa tätä \"viive\"-ominaisuudella."
         },
         "settings": {
             "tip-1": "Tämä toiminto avaa Kandon asetusikkunan."
@@ -121,9 +117,8 @@
         "about-dialog": {
             "chrome-version": "Chrome-versio",
             "electron-version": "Electron-versio",
-            "kando-backend": "Kando-taustaosa",
-            "kando-version": "Kando-versio",
-            "message": "Olen luonut Kandon pelkästä intohimosta. Jos nautit sen käyttämisestä yhtä paljon kuin minä sen kehittämisestä, voit [tarjota kahvit]({{link}})!\n\n💖 Simon",
+            "kando-backend": "KandoAir-taustaosa",
+            "kando-version": "KandoAir-versio",
             "title": "Tietoa Kandosta",
             "check-latest-release": "Tarkista viimeisin julkaisu",
             "read-release-notes": "Lue julkaisun tiedot"
@@ -148,9 +143,9 @@
             "message": "Kaikki valikot ja Kandon asetukset on tallennettu kahteen JSON-tiedostoon, joita voi muokata, jakaa ja varmuuskopioida. Napsauta [tästä]({{link}}) avataksesi kansion, johon tiedostot on tallennettu.",
             "app-settings": "Sovelluksen asetukset",
             "localization-label": "Kieli",
-            "localization-info": "Käynnistä Kando uudelleen vahvistaaksesi kielivalinnan.",
+            "localization-info": "Käynnistä KandoAir uudelleen vahvistaaksesi kielivalinnan.",
             "check-for-new-versions": "Tarkista päivitykset",
-            "check-for-new-versions-info": "Jos päällä, Kando lähettää ilmoituksen kun uusi versio on saatavilla.",
+            "check-for-new-versions-info": "Jos päällä, KandoAir lähettää ilmoituksen kun uusi versio on saatavilla.",
             "invisible-settings-button-info": "Voit yhä käyttää painiketta, se tulee näkyviin siirtäessäsi osoittimen sen päälle.",
             "settings-button-position": "Asetukset-painikkeen sijainti",
             "settings-button-position-info": "Valitse näytön kulma asetukset-painikkeen näyttämiseksi.",
@@ -178,7 +173,7 @@
             "white": "Valkoinen",
             "black": "Musta",
             "lazy-initialization": "Laiska alustus",
-            "lazy-initialization-info": "Jos käytössä, valikkoikkuna näytetään vain, kun valikko avataan ensimmäistä kertaa. Tämä tekee valikon ensimmäisestä avaamisesta hieman hitaamman, mutta se voi estää ongelmat, kun Kando käynnistetään liian aikaisin kirjautumisen aikana. Oletuksena poistettu käytöstä.",
+            "lazy-initialization-info": "Jos käytössä, valikkoikkuna näytetään vain, kun valikko avataan ensimmäistä kertaa. Tämä tekee valikon ensimmäisestä avaamisesta hieman hitaamman, mutta se voi estää ongelmat, kun KandoAir käynnistetään liian aikaisin kirjautumisen aikana. Oletuksena poistettu käytöstä.",
             "menu-behavior": "Valikon käyttäytyminen",
             "keep-input-focus": "Pidä aktiivinen sovellus kohdistettuna",
             "keep-input-focus-info": "Jos käytössä, valikko ei avattaessa saa näppäimistön kohdistusta. Tämä poistaa käytöstä Turbo-tilan, mutta voi olla käytännöllinen jos haluat pitää kohdistuksen muissa sovelluksissa valikon avautuessa.",
@@ -210,11 +205,11 @@
             "advanced-menu-options-note": "Yleensä voit jättää nämä asetukset niiden oletusarvoihin.",
             "developer-options": "Kehittäjän valinnat",
             "settings-window-dev-tools": "Tarkista asetukset",
-            "hardware-acceleration-info": "Tämä valinta voi nostaa sovelluksen suorituskykyä, mutta voi myös johtaa renderöintivirheisiin. Käynnistä Kando uudelleen, jotta tämä asetus tulee voimaan.",
+            "hardware-acceleration-info": "Tämä valinta voi nostaa sovelluksen suorituskykyä, mutta voi myös johtaa renderöintivirheisiin. Käynnistä KandoAir uudelleen, jotta tämä asetus tulee voimaan.",
             "hardware-acceleration": "Käytä laitteistokiihdytystä",
             "invisible-settings-button": "Näkymätön asetuspainike",
             "center": "Keskellä",
-            "enable-achievements-info": "Jos käytössä, Kando seuraa edistymistäsi saavutusten näkökulmasta.",
+            "enable-achievements-info": "Jos käytössä, KandoAir seuraa edistymistäsi saavutusten näkökulmasta.",
             "enable-achievements": "Seuraa saavutuksia",
             "minimum-submenu-distance": "Alivalikon vähimmäisetäisyys",
             "movement-threshold": "Liikkumisen kynnys",
@@ -227,7 +222,7 @@
             "restore-menus": "Palauta menus.json…",
             "restore-settings": "Palauta config.json…",
             "reload-note": "Kun lataat uudelleen valikkoteeman, CSS-muutokset toteutetaan vaikka valikko olisi avoinna. Muutokset, jotka on tehty theme.json-tiedostoon, vaativat valikon avaamisen uudelleen.",
-            "dev-tools-note": "Kando käyttää kahta ikkunaa: yksi valikkoa varten, toinen asetuksia varten. Voit avata kehitystyökalut ja tutkia molempia ikkunoita toisistaan erillään.",
+            "dev-tools-note": "KandoAir käyttää kahta ikkunaa: yksi valikkoa varten, toinen asetuksia varten. Voit avata kehitystyökalut ja tutkia molempia ikkunoita toisistaan erillään.",
             "menu-window-dev-tools": "Tutki valikkoa",
             "enable-achievement-notifications": "Näytä saavutusilmoitukset",
             "interaction-modes": "Vuorovaikutustilat"
@@ -239,18 +234,16 @@
             "search-placeholder": "Etsi kuvakkeita…",
             "file-example": "tiedosto: URI esimerkki:",
             "url-example": "URL esimerkki:",
-            "hint": "[Opi]({{link}}) kuinka lisätä tai luoda omia kuvaketeemojasi.",
             "base64-hint": "Base64-koodatut kuvakkeet tarjoavat helpon tavan sisällyttää minkälaisia kuvakkeita tahansa valikkoihin. Voit käyttää palveluita, kuten [www.base64-image.de]({{link}}), muuntaaksesi minkä tahansa kuvan base64-koodatuksi merkkijonoksi. Tämä toimii jopa animoitujen gif-kuvien kanssa!",
             "reload-button-tooltip": "Lataa uudelleen kaikki kuvaketeemat"
         },
         "introduction-dialog": {
-            "title": "Tervetuloa, tämä on Kando!",
+            "title": "Tervetuloa, tämä on KandoAir!",
             "show-again": "Näytä seuraavan kerran avattaessa",
-            "slide1-title": "Kando tarjoaa ainutlaatuisen ja kätevän tavan vuorovaikuttaa tietokoneesi kanssa.",
-            "slide1-text": "Pyyhkäise diojen läpi oppiaksesi, mitä Kando voi tehdä hyväksesi! Voit käyttää vasemmalla olevia lukujen merkkejä hypätäksesi nopeasti tiettyyn johdannon osaan.",
+            "slide1-title": "KandoAir tarjoaa ainutlaatuisen ja kätevän tavan vuorovaikuttaa tietokoneesi kanssa.",
+            "slide1-text": "Pyyhkäise diojen läpi oppiaksesi, mitä KandoAir voi tehdä hyväksesi! Voit käyttää vasemmalla olevia lukujen merkkejä hypätäksesi nopeasti tiettyyn johdannon osaan.",
             "slide2-title": "Avaa valikko!",
             "slide2-text-standard": "Jos käynnistit Kandon ensimmäistä kertaa, voit avata esimerkkivalikon painamalla Ctrl+välilyönti. Sulje se uudelleen Esc-näppäimellä tai hiiren oikealla näppäimellä missä tahansa näytöllä.",
-            "slide2-text-no-shortcuts": "Jos käynnistit Kandon ensimmäistä kertaa, sinun [saattaa tarvita suorittaa joitakin välivaiheita Linuxilla saadaksesi järjestelmän pikanäppäimet toimimaan]({{link}}). Kun tämä toimii, voit sulkea valikon Escape-näppäimellä tai hiiren oikealla painikkeella.",
             "slide3-hint1": "Voi myös painaa tästä sulkeaksesi valikon.",
             "slide3-hint2": "Valitse kohde napsauttamalla mistä tahansa täältä.",
             "slide3-text": "Kandossa **koko näyttösi on painalluksen kohde**! Sinun ei tarvitse tähdätä kuvakkeita, vaan voit napsauttaa missä tahansa kohteen sektorilla. Tämä tekee kohteiden valinnasta paljon kätevämpää.",
@@ -261,8 +254,7 @@
             "slide9-title": "Ole salamannopea: turbotila",
             "slide10-text": "**Älä jää odottamaan animaation valmistumista!** Pujottele tiesi valikon läpi. Se on nopein tapa valita valikkokohteita!",
             "slide12-title": "Ja vielä jotain lisäksi!",
-            "slide12-text": "Kando on erittäin mukautettava. Voit käyttää sitä sovellusten ja tiedostojen avaamiseen, näppäimistömakrojen suorittamiseen ja moniin muihin tarpeisiin. Voit [muuttaa valikon tyyliä]({{link1}}), [lisätä kuvaketeemoja]({{link2}}) ja [käyttää jopa ääniä]({{link3}}) valikoissasi!",
-            "slide13-text": "Jos tarvitset apua, liity [Discord-palvelimelle]({{link1}}) tai lue [dokumentaatio]({{link2}})!",
+            "slide12-text": "KandoAir on erittäin mukautettava. Voit käyttää sitä sovellusten ja tiedostojen avaamiseen, näppäimistömakrojen suorittamiseen ja moniin muihin tarpeisiin. Voit [muuttaa valikon tyyliä]({{link1}}), [lisätä kuvaketeemoja]({{link2}}) ja [käyttää jopa ääniä]({{link3}}) valikoissasi!",
             "chapter1": "Aloitetaan",
             "chapter2": "Merkintätila",
             "chapter3": "Turbotila",
@@ -326,7 +318,6 @@
         "add-menu-items": "Lisää kohteita valikkoon",
         "undo": "Palauta",
         "redo": "Tee uudelleen",
-        "menu-behavior-info": "Ennen kuin otat mitään seuraavista käyttöön, suosittelemme lukemaan [tästä]({{link}}) miksi pidämme Kandon oletuskäyttäytymisestä!",
         "anchored-mode-info": "Avaa alavalikko samassa paikassa kuin päävalikko. Tämän käyttäminen poistaa Merkintätilan ja Turbo-tilan käytöstä.",
         "window-condition-placeholder": "Ikkunan otsikko",
         "window-condition-tooltip": "Valitse ikkuna",
@@ -489,7 +480,7 @@
             "placeholder": "Lisää mikä tahansa komento…",
             "isolated": "Suorita eristettynä",
             "isolated-info": "Tämä suorittaa komennon puhtaassa ympäristössä, mikä tarkoittaa, että se ei peri mitään ympäristömuuttujia Kandolta. Tämä voi auttaa käskyissä, jotka eivät käynnisty kunnolla.",
-            "detached-info": "Tämä irrottaa komennon Kandosta, joten se jatkaa toimintaansa, vaikka Kando olisi suljettu. Tämän poistaminen käytöstä saattaa ratkaista ongelmat komennoilla, jotka eivät käynnisty kunnolla.",
+            "detached-info": "Tämä irrottaa komennon Kandosta, joten se jatkaa toimintaansa, vaikka KandoAir olisi suljettu. Tämän poistaminen käytöstä saattaa ratkaista ongelmat komennoilla, jotka eivät käynnisty kunnolla.",
             "detached": "Suorita irrallisena"
         },
         "open-menu": {

@@ -12,22 +12,17 @@ export type { GeneralSettingsV1 as GeneralSettings } from './general-settings-v1
 export { GENERAL_SETTINGS_SCHEMA_V1 as GENERAL_SETTINGS_SCHEMA } from './general-settings-v1';
 
 export type {
-  CloseMenuActionV2 as CloseMenuAction,
-  CloseSubmenuActionV2 as CloseSubmenuAction,
+  LaunchAppActionV2 as LaunchAppAction,
   ExecuteCommandActionV2 as ExecuteCommandAction,
   ExecuteMacroActionV2 as ExecuteMacroAction,
   FocusWindowActionV2 as FocusWindowAction,
-  InhibitShortcutsActionV2 as InhibitShortcutsAction,
+  MacroEventV2 as MacroEvent,
   OpenFileActionV2 as OpenFileAction,
   OpenMenuActionV2 as OpenMenuAction,
-  OpenSettingsActionV2 as OpenSettingsAction,
   OpenURIActionV2 as OpenURIAction,
   SetClipboardActionV2 as SetClipboardAction,
-  SendWebSocketMessageActionV2 as SendWebSocketMessageAction,
   SimulateHotkeyActionV2 as SimulateHotkeyAction,
-  DelayActionV2 as DelayAction,
   MenuConditionsV2 as MenuConditions,
-  MacroEventV2 as MacroEvent,
   MenuItemV2 as MenuItem,
   MenuItemTypeV2 as MenuItemType,
   RootMenuItemV2 as RootMenuItem,
@@ -50,14 +45,3 @@ export {
 
 export type { ExportedMenuV2 as ExportedMenu } from './exported-menu-v2';
 export { EXPORTED_MENU_SCHEMA_V2 as EXPORTED_MENU_SCHEMA } from './exported-menu-v2';
-
-import type { AchievementStatsV1 as AchievementStats } from './achievement-stats-v1';
-export type { AchievementStatsV1 as AchievementStats } from './achievement-stats-v1';
-export { ACHIEVEMENT_STATS_SCHEMA_V1 as ACHIEVEMENT_STATS_SCHEMA } from './achievement-stats-v1';
-
-// Type to extract only the number keys from AchievementStats
-type NumberKeys<T> = {
-  [K in keyof T]: T[K] extends number ? K : never;
-}[keyof T];
-
-export type AchievementStatsNumberKeys = NumberKeys<AchievementStats>;

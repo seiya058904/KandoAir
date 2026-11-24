@@ -1,48 +1,43 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 //   _  _ ____ _  _ ___  ____                                                           //
 //   |_/  |__| |\ | |  \ |  |    This file belongs to Kando, the cross-platform         //
-//   | \_ |  | | \| |__/ |__|    pie menu. Read more on github.com/menu/kando           //
+//   | \_ |  | | \| |__/ |__|    pie menu. Read more on github.com/kando-menu/kando     //
 //                                                                                      //
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+// SPDX-FileCopyrightText: KandoAir contributors
 // SPDX-License-Identifier: MIT
-
-import { matchSorter } from 'match-sorter';
-import iconsData from 'simple-icons-font/font/simple-icons.min.json';
 
 import { IconTheme } from './icon-theme-registry';
 
-/** This class implements an icon theme that uses the Simple Icons font as icons. */
+/**
+ * This class implements an icon theme that uses the Simple Icons font as icons. The
+ * searchable icon metadata is attached lazily by the settings window so the menu bundle
+ * stays small and fast to parse.
+ */
 export class SimpleIconsTheme implements IconTheme {
-  /**
-   * This array contains all available icon titles and slugs. It is initialized in the
-   * constructor.
-   */
-  protected iconsData: Array<{ title: string; slug: string }> = [];
+  protected listIconsFn: (searchTerm: string) => Array<string> = () => [];
+  protected getTitleFn: (icon: string) => string = (icon) => icon;
 
-  /**
-   * This map contains the title of each icon, indexed by its slug. It is initialized in
-   * the constructor.
-   */
-  protected iconTitlesMap: Map<string, string> = new Map();
+  /** Attaches the searchable icon list implementation (used by the settings window). */
+  public setListIcons(fn: (searchTerm: string) => Array<string>) {
+    this.listIconsFn = fn;
+  }
 
-  constructor() {
-    // Initialize the iconsData array and the iconTitlesMap with the data from simple-icons.
-    for (const icon of iconsData) {
-      this.iconsData.push({ title: icon.title, slug: icon.slug });
-      this.iconTitlesMap.set(icon.slug, icon.title);
-    }
+  /** Attaches the icon title lookup implementation (used by the settings window). */
+  public setGetTitle(fn: (icon: string) => string) {
+    this.getTitleFn = fn;
+  }
+
+  /** Returns the human-readable title for a Simple Icons slug. */
+  public getTitle(icon: string) {
+    return this.getTitleFn(icon);
   }
 
   /** Returns a human-readable name of the icon theme. */
   get name() {
     return 'Simple Icons';
-  }
-
-  /** Get the icon title according to the icon slug. */
-  getTitle(slug: string) {
-    return this.iconTitlesMap.get(slug) ?? slug;
   }
 
   /**
@@ -69,11 +64,7 @@ export class SimpleIconsTheme implements IconTheme {
     return {
       type: 'list' as const,
       usesTextColor: true,
-      listIcons: (searchTerm: string) => {
-        return matchSorter(this.iconsData, searchTerm, { keys: ['title', 'slug'] }).map(
-          (icon) => icon.slug
-        );
-      },
+      listIcons: (searchTerm: string) => this.listIconsFn(searchTerm),
     };
   }
 }

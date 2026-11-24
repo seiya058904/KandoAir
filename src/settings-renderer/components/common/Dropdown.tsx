@@ -59,39 +59,46 @@ export default function Dropdown<T extends string>(props: Props<T>) {
 
   const selectRef = React.useRef<HTMLSelectElement>(null);
 
-  // Handler to change dropdown value with scroll wheel.
-  const handleWheel = (event: WheelEvent) => {
-    if (props.isDisabled) {
-      return;
-    }
-
-    const currentIdx = props.options.findIndex(
-      (option) => option.value === props.initialValue
-    );
-
-    const newIdx = Math.min(
-      Math.max(currentIdx + (event.deltaY > 0 ? 1 : -1), 0),
-      props.options.length - 1
-    );
-
-    if (newIdx !== currentIdx && props.onChange) {
-      props.onChange(props.options[newIdx].value);
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-  };
+  const propsRef = React.useRef(props);
+  React.useEffect(() => {
+    propsRef.current = props;
+  });
 
   // We cannot use react's onWheel event here, because it does not allow us to prevent the
   // default behavior of the wheel event. This is necessary to prevent the page from
   // scrolling when the user scrolls over the dropdown.
   React.useEffect(() => {
     const el = selectRef.current;
-    if (el) {
-      el.addEventListener('wheel', handleWheel, { passive: false });
+    if (!el) {
+      return;
     }
+
+    const handleWheel = (event: WheelEvent) => {
+      const currentProps = propsRef.current;
+      if (currentProps.isDisabled) {
+        return;
+      }
+
+      const currentIdx = currentProps.options.findIndex(
+        (option) => option.value === currentProps.initialValue
+      );
+
+      const newIdx = Math.min(
+        Math.max(currentIdx + (event.deltaY > 0 ? 1 : -1), 0),
+        currentProps.options.length - 1
+      );
+
+      if (newIdx !== currentIdx && currentProps.onChange) {
+        currentProps.onChange(currentProps.options[newIdx].value);
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
-  });
+  }, []);
 
   return (
     <SettingsRow

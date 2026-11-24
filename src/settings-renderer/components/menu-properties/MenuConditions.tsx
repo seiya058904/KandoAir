@@ -42,18 +42,23 @@ export default function MenuConditions() {
   const [appPickerVisible, setAppPickerVisible] = React.useState(false);
   const [windowPickerVisible, setWindowPickerVisible] = React.useState(false);
 
+  const menu = menus[selectedMenu];
+
   // Initialize the conditions for the selected menu.
   React.useEffect(() => {
-    setAppCondition(menus[selectedMenu].conditions?.appName || '');
-    setWindowCondition(menus[selectedMenu].conditions?.windowName || '');
+    if (!menu) {
+      return;
+    }
+    setAppCondition(menu.conditions?.appName || '');
+    setWindowCondition(menu.conditions?.windowName || '');
 
-    setAppConditionVisible(!!menus[selectedMenu].conditions?.appName);
-    setWindowConditionVisible(!!menus[selectedMenu].conditions?.windowName);
+    setAppConditionVisible(!!menu.conditions?.appName);
+    setWindowConditionVisible(!!menu.conditions?.windowName);
 
-    const minX = menus[selectedMenu].conditions?.screenArea?.xMin?.toString() || '';
-    const minY = menus[selectedMenu].conditions?.screenArea?.yMin?.toString() || '';
-    const maxX = menus[selectedMenu].conditions?.screenArea?.xMax?.toString() || '';
-    const maxY = menus[selectedMenu].conditions?.screenArea?.yMax?.toString() || '';
+    const minX = menu.conditions?.screenArea?.xMin?.toString() || '';
+    const minY = menu.conditions?.screenArea?.yMin?.toString() || '';
+    const maxX = menu.conditions?.screenArea?.xMax?.toString() || '';
+    const maxY = menu.conditions?.screenArea?.yMax?.toString() || '';
 
     setScreenMinX(minX);
     setScreenMinY(minY);
@@ -61,12 +66,16 @@ export default function MenuConditions() {
     setScreenMaxY(maxY);
 
     setScreenConditionVisible(minX !== '' || minY !== '' || maxX !== '' || maxY !== '');
-  }, [selectedMenu, menus]);
+  }, [menu]);
 
   // This is used to animate the height condition inputs.
   const [appConditionRef] = useAutoAnimate({ duration: 250 });
   const [windowConditionRef] = useAutoAnimate({ duration: 250 });
   const [screenConditionRef] = useAutoAnimate({ duration: 250 });
+
+  if (!menu) {
+    return null;
+  }
 
   return (
     <div className={classes.container}>
@@ -110,6 +119,11 @@ export default function MenuConditions() {
                 });
               }}
               onChange={(event) => setAppCondition(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.currentTarget.blur();
+                }
+              }}
             />
             <Button
               isGrouped
@@ -160,6 +174,11 @@ export default function MenuConditions() {
                 });
               }}
               onChange={(event) => setWindowCondition(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.currentTarget.blur();
+                }
+              }}
             />
             <Button
               isGrouped
@@ -239,16 +258,21 @@ export default function MenuConditions() {
                       delete menu.conditions.screenArea;
                     } else {
                       menu.conditions.screenArea = {
-                        xMin: screenMinX === '' ? null : parseInt(screenMinX),
-                        yMin: screenMinY === '' ? null : parseInt(screenMinY),
-                        xMax: screenMaxX === '' ? null : parseInt(screenMaxX),
-                        yMax: screenMaxY === '' ? null : parseInt(screenMaxY),
+                        xMin: screenMinX === '' ? undefined : parseInt(screenMinX, 10),
+                        yMin: screenMinY === '' ? undefined : parseInt(screenMinY, 10),
+                        xMax: screenMaxX === '' ? undefined : parseInt(screenMaxX, 10),
+                        yMax: screenMaxY === '' ? undefined : parseInt(screenMaxY, 10),
                       };
                     }
                     return menu;
                   });
                 }}
                 onChange={(event) => setValue(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.currentTarget.blur();
+                  }
+                }}
               />
             ))}
             <Button

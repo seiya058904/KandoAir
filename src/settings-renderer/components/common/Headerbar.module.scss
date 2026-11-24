@@ -12,7 +12,7 @@
 
 .headerbar {
   color: $text-normal;
-  min-height: env(titlebar-area-height, 30);
+  min-height: env(titlebar-area-height, 36px);
   -webkit-app-region: drag;
   display: flex;
   align-items: center;

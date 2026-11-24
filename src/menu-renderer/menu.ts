@@ -28,7 +28,6 @@ import {
 import { SelectionWedges } from './selection-wedges';
 import { WedgeSeparators } from './wedge-separators';
 import { CenterText } from './center-text';
-import { GamepadInput } from './input-methods/gamepad-input';
 import { PointerInput } from './input-methods/pointer-input';
 import { ButtonState, InputState, SelectionType } from './input-methods/input-method';
 import { MenuTheme } from './menu-theme';
@@ -109,14 +108,8 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
   /** This is used to visualize the separator lines between adjacent wedges. */
   private wedgeSeparators: WedgeSeparators = null;
 
-  /** This detects mouse and touch gestures and emits selection events. */
+  /** This detects mouse gestures and emits selection events. */
   private pointerInput: PointerInput = new PointerInput();
-
-  /**
-   * The gamepad input is used to detect gamepad input. It polls the gamepad state and
-   * emits events when buttons are pressed or the thumbsticks are moved.
-   */
-  private gamepadInput: GamepadInput = new GamepadInput();
 
   /**
    * This object contains information on the latest pointer state. Is it updated whenever
@@ -126,9 +119,6 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
 
   /** This timeout is used to clear the menu div after the fade-out animation. */
   private hideTimeout: NodeJS.Timeout;
-
-  /** This timeout is used to initialize the menu position on mouse enter. */
-  private initialPositionTimeout: NodeJS.Timeout;
 
   /**
    * The time when the current menu was shown. Used to track selection times for
@@ -209,11 +199,6 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
       this.wedgeSeparators = new WedgeSeparators(this.container);
     }
 
-    // On Windows, the menu position passed from the main process is sometimes not
-    // correct. For instance, this happens when using pen input with Windows Ink enabled.
-    // To work around this, we wait a few milliseconds until the first mouse enter event
-    // arrives and show the menu there. If no mouse enter event arrives within that time,
-    // we simply show the menu at the given position.
     const showMenu = () => {
       const menuPosition = this.getInitialMenuPosition();
       const toPointer = math.subtract(this.showMenuOptions.mousePosition, menuPosition);
@@ -229,18 +214,17 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
       this.container.classList.add('no-transitions');
       this.openSubmenu(this.root, menuPosition);
 
-      // To ensure that all DOM changes are applied, flush the browser's rendering
-      // pipeline first.
-      this.container.getBoundingClientRect();
-
+      // Flush the browser's rendering pipeline before enabling transitions so the
+      // opening fade-in plays cleanly. Skip the synchronous reflow when animations are off.
       if (this.settings.enableMenuAnimations) {
+        this.container.getBoundingClientRect();
         this.container.classList.remove('no-transitions');
       }
 
-      // If required, move the pointer to the center of the menu.
+      // If required, move the pointer to the (already clamped) center of the menu.
       if (this.settings.warpMouse && this.showMenuOptions.useFixedPosition) {
         const offset = math.subtract(
-          this.getInitialMenuPosition(),
+          this.getCenterItemPosition(),
           this.showMenuOptions.mousePosition
         );
         this.emit('move-pointer', offset);
@@ -251,26 +235,7 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
       this.menuShownTime = Date.now();
     };
 
-    if (cIsWindows && this.settings.windowsInkWorkaround) {
-      const onMouseEnter = (e: MouseEvent) => {
-        this.showMenuOptions = {
-          ...this.showMenuOptions,
-          mousePosition: { x: e.clientX, y: e.clientY },
-        };
-        clearTimeout(this.initialPositionTimeout);
-        showMenu();
-        this.container.removeEventListener('mouseenter', onMouseEnter);
-      };
-
-      this.initialPositionTimeout = setTimeout(() => {
-        this.container.removeEventListener('mouseenter', onMouseEnter);
-        showMenu();
-      }, 100);
-
-      this.container.addEventListener('mouseenter', onMouseEnter);
-    } else {
-      showMenu();
-    }
+    showMenu();
   }
 
   /** Removes all DOM elements from the menu and resets the root menu item. */
@@ -285,9 +250,7 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
     this.draggedItem = null;
     this.centerItem = null;
     clearTimeout(this.hideTimeout);
-    clearTimeout(this.initialPositionTimeout);
     this.hideTimeout = null;
-    this.initialPositionTimeout = null;
   }
 
   /**
@@ -323,8 +286,15 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
       this.settings.drawQuickSelectKey.toString()
     );
 
-    this.pointerInput.enableMarkingMode = this.settings.enableMarkingMode;
-    this.pointerInput.enableTurboMode = this.settings.enableTurboMode;
+    this.container.classList.toggle(
+      'no-transitions',
+      !this.settings.enableMenuAnimations
+    );
+
+    const anchored = Boolean(this.showMenuOptions?.anchoredMode);
+    this.pointerInput.enableMarkingMode = this.settings.enableMarkingMode && !anchored;
+    this.pointerInput.enableTurboMode =
+      this.settings.enableTurboMode && !anchored && !this.settings.keepInputFocus;
     this.pointerInput.dragThreshold = this.settings.dragThreshold;
     this.pointerInput.hoverModeNeedsConfirmation =
       this.settings.hoverModeNeedsConfirmation;
@@ -340,11 +310,6 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
     this.pointerInput.gestureDetector.pauseTimeout = this.settings.gesturePauseTimeout;
     this.pointerInput.gestureDetector.fixedStrokeLength = this.settings.fixedStrokeLength;
     this.pointerInput.gestureDetector.centerDeadZone = this.settings.centerDeadZone;
-
-    this.gamepadInput.enabled = this.settings.enableGamepad;
-    this.gamepadInput.parentDistance = this.settings.minParentDistance;
-    this.gamepadInput.backButton = this.settings.gamepadBackButton;
-    this.gamepadInput.closeButton = this.settings.gamepadCloseButton;
   }
 
   /** There are two types of interactions which can be triggered by the host process. */
@@ -535,30 +500,16 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
           }
         }
 
-        // Finally, we check whether any hover-workflow of the menu items got triggered.
-        if (this.centerItem.type === 'submenu' || this.centerItem.type === 'root') {
-          for (let i = 0; i < this.centerItem.children.length; i++) {
-            const child = this.centerItem.children[i] as RenderedChildMenuItem;
-
-            if (child.hoverWorkflow?.quickSelectKey) {
-              if (child.hoverWorkflow.quickSelectKey.toLocaleLowerCase() === eventKey) {
-                this.hoverAngle(child.renderData.computedAngle);
-                return;
-              }
-            }
-          }
-        }
-
-        if (event.type === 'keydown') {
-          if (
-            event.key === 'ArrowLeft' ||
-            event.key === 'ArrowUp' ||
-            event.key === 'ArrowRight' ||
-            event.key === 'ArrowDown'
-          ) {
+        if (
+          event.key === 'ArrowLeft' ||
+          event.key === 'ArrowUp' ||
+          event.key === 'ArrowRight' ||
+          event.key === 'ArrowDown'
+        ) {
+          if (event.type === 'keydown') {
             this.changeHoveredItem(event.key);
-            return;
           }
+          return;
         }
 
         if (event.key === 'Enter') {
@@ -600,13 +551,8 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
     };
 
     this.pointerInput.onCloseMenu(onCloseMenu);
-    this.gamepadInput.onCloseMenu(onCloseMenu);
-
     this.pointerInput.onUpdateState(onUpdateState);
-    this.gamepadInput.onUpdateState(onUpdateState);
-
     this.pointerInput.onSelection(onSelection);
-    this.gamepadInput.onSelection(onSelection);
 
     document.addEventListener('keydown', onKeyEvent);
     document.addEventListener('keyup', onKeyEvent);
@@ -615,9 +561,6 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
       this.pointerInput.onPointerDownEvent(e);
     });
     this.container.addEventListener('pointermove', (e) => {
-      this.pointerInput.onMotionEvent(e);
-    });
-    this.container.addEventListener('touchmove', (e) => {
       this.pointerInput.onMotionEvent(e);
     });
     this.container.addEventListener('pointerup', (e) => {
@@ -741,7 +684,6 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
       this.latestInput.angle = 0;
 
       this.pointerInput.setCurrentCenter(clampedPosition, this.settings.centerDeadZone);
-      this.gamepadInput.setCurrentCenter(clampedPosition);
 
       // Assemble a list of angles for the selection-wedge separators.
       const separators = item.children.map((child) => {
@@ -757,9 +699,10 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
       this.wedgeSeparators?.setSeparators(separators, clampedPosition);
     }
 
-    // Finally update the CSS classes of all DOM nodes according to the new selection chain
-    // and update the connectors.
+    // Finally update the CSS classes of all DOM nodes according to the new selection chain,
+    // apply selection-chain transforms/parent wedges once, and update the connectors.
     this.updateCSSClasses();
+    this.updateSelectionChainTransforms();
     this.updateConnectors();
     this.redraw();
   }
@@ -797,7 +740,9 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
 
     // Tell the selection wedges about the hovered wedge.
     if (this.selectionWedges) {
-      if (item === this.centerItem.renderData.parent) {
+      if (!item) {
+        this.selectionWedges.unhover();
+      } else if (item === this.centerItem.renderData.parent) {
         if (this.centerItem.renderData.parentWedge) {
           this.selectionWedges.hover(this.centerItem.renderData.parentWedge);
         } else {
@@ -1046,6 +991,12 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
 
     if (this.draggedItem) {
       this.draggedItem.renderData.nodeDiv.classList.remove('dragged');
+      // Only clear inline transform/position when an item actually stops being dragged
+      // (instead of touching every child's style on every pointermove frame).
+      if (this.draggedItem !== this.centerItem) {
+        this.draggedItem.renderData.nodeDiv.style.transform = '';
+        this.draggedItem.renderData.position = undefined;
+      }
       this.draggedItem = null;
     }
 
@@ -1090,7 +1041,6 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
 
     if (this.latestInput.button === ButtonState.eClicked && !this.clickedItem) {
       this.clickItem(this.hoveredItem);
-      this.updateConnectors();
     }
 
     // If the mouse is dragged over a menu item, make that item the dragged item.
@@ -1156,7 +1106,7 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
         const connectorEnd = this.getCenterItemPosition();
         const connectorStart = math.subtract(
           connectorEnd,
-          this.centerItem.renderData.parent.renderData.position
+          this.centerItem.renderData.position
         );
 
         const distance = math.getDistanceToLineSegment(
@@ -1200,67 +1150,76 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
   }
 
   /**
-   * This method updates the transform properties of all menu items along the selection
-   * chain. All other item's transforms are reset as they are positioned relative to their
-   * parent items using CSS.
+   * Updates transforms and parent-wedge CSS properties along the active selection chain,
+   * and clears inline transforms on current children. Called once when navigating
+   * submenus instead of re-walking the ancestor chain on every pointer-move frame.
    */
-  private updateTransform() {
+  private updateSelectionChainTransforms() {
     let item = this.centerItem;
     let parentWedge = item.renderData.parentWedge;
 
+    item.renderData.nodeDiv.style.removeProperty('--parent-start-angle');
+    item.renderData.nodeDiv.style.removeProperty('--parent-end-angle');
+
+    if (item.type === 'submenu' || item.type === 'root') {
+      for (let j = 0; j < item.children.length; ++j) {
+        const child = item.children[j] as RenderedChildMenuItem;
+        child.renderData.nodeDiv.style.transform = '';
+        child.renderData.position = undefined;
+        if (!this.settings.enablePointerReactiveEffects) {
+          this.theme.setChildProperties(
+            child,
+            (child.renderData.computedAngle + 180) % 360
+          );
+        }
+      }
+    }
+
     while (item) {
       item.renderData.nodeDiv.style.transform = `translate(${item.renderData.position.x}px, ${item.renderData.position.y}px)`;
-
-      // For the center item, we also set the custom CSS properties of the item, like the
-      // angular difference between the item and the mouse pointer direction. We also set
-      // the transform property of the currently dragged item to the latest pointer
-      // position.
-      if (item === this.centerItem) {
-        let hoveredAngle;
-
-        if (this.hoveredItem && this.hoveredItem.type !== 'root') {
-          hoveredAngle = this.hoveredItem?.renderData.computedAngle;
-          if (this.hoveredItem === this.centerItem.renderData.parent) {
-            hoveredAngle = (item.renderData.computedAngle + 180) % 360;
-          }
-        }
-
-        this.theme.setCenterProperties(
-          item,
-          this.latestInput.angle,
-          hoveredAngle,
-          this.hoveredItem === this.centerItem.renderData.parent
-        );
-
-        if (item.type === 'submenu' || item.type === 'root') {
-          for (let j = 0; j < item.children.length; ++j) {
-            const child = item.children[j] as RenderedChildMenuItem;
-            if (child === this.draggedItem) {
-              child.renderData.position = this.latestInput.relativePosition;
-              child.renderData.nodeDiv.style.transform = `translate(${child.renderData.position.x}px, ${child.renderData.position.y}px)`;
-            } else {
-              // Set the custom CSS properties of the item, like the angular difference between
-              // the item and the mouse pointer direction.
-              this.theme.setChildProperties(
-                child,
-                this.settings.enablePointerReactiveEffects
-                  ? this.latestInput.angle
-                  : (child.renderData.computedAngle + 180) % 360
-              );
-              child.renderData.nodeDiv.style.transform = '';
-              delete child.renderData.position;
-            }
-          }
-        }
-      }
-      // For all other items along the selection chain, we set the required CSS properties
-      // like the wedge angles of the back-navigation wedge.
-      else {
+      if (item !== this.centerItem) {
         this.theme.setParentProperties(item, parentWedge);
       }
-
       parentWedge = item.renderData.parentWedge;
       item = item.renderData.parent;
+    }
+  }
+
+  /**
+   * Updates per-frame CSS properties for the active center item, its children (when
+   * pointer-reactive effects are enabled), and any currently dragged item.
+   */
+  private updateTransform() {
+    const item = this.centerItem;
+    let hoveredAngle;
+
+    if (this.hoveredItem && this.hoveredItem.type !== 'root') {
+      hoveredAngle = this.hoveredItem?.renderData.computedAngle;
+      if (this.hoveredItem === this.centerItem.renderData.parent) {
+        hoveredAngle = (item.renderData.computedAngle + 180) % 360;
+      }
+    }
+
+    this.theme.setCenterProperties(
+      item,
+      this.latestInput.angle,
+      hoveredAngle,
+      this.hoveredItem === this.centerItem.renderData.parent
+    );
+
+    if (item.type === 'submenu' || item.type === 'root') {
+      const reactive = this.settings.enablePointerReactiveEffects;
+      if (reactive || this.draggedItem) {
+        for (let j = 0; j < item.children.length; ++j) {
+          const child = item.children[j] as RenderedChildMenuItem;
+          if (child === this.draggedItem) {
+            child.renderData.position = this.latestInput.relativePosition;
+            child.renderData.nodeDiv.style.transform = `translate(${child.renderData.position.x}px, ${child.renderData.position.y}px)`;
+          } else if (reactive) {
+            this.theme.setChildProperties(child, this.latestInput.angle);
+          }
+        }
+      }
     }
   }
 

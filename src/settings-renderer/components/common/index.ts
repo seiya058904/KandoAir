@@ -42,3 +42,4 @@ export { default as Tag } from './Tag';
 export { default as TagInput } from './TagInput';
 export { default as TextInput } from './TextInput';
 export { default as ThemedIcon } from './ThemedIcon';
+export { default as WindowControls } from './WindowControls';

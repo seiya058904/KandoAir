@@ -6,6 +6,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+// SPDX-FileCopyrightText: KandoAir contributors
 // SPDX-License-Identifier: MIT
 
 import { WindowWithAPIs } from '../../settings-window-api';
@@ -14,13 +15,7 @@ declare const window: WindowWithAPIs;
 import React, { ReactNode } from 'react';
 import i18next from 'i18next';
 import classNames from 'classnames/bind';
-import {
-  TbExternalLink,
-  TbFolderOpen,
-  TbCircleCheck,
-  TbPaletteFilled,
-  TbReload,
-} from 'react-icons/tb';
+import { TbCircleCheck, TbFolderOpen, TbPaletteFilled, TbReload } from 'react-icons/tb';
 import { IoIosSave } from 'react-icons/io';
 import lodash from 'lodash';
 
@@ -46,7 +41,7 @@ const cx = classNames.bind(classes);
 const openThemeDirectory = () => {
   window.settingsAPI
     .getMenuThemesDirectory()
-    .then((dir) => window.open('file://' + dir, '_blank'));
+    .then((dir) => window.settingsAPI.openPath(dir));
 };
 
 // This is called when the user clicks the "Open presets directory" button.
@@ -81,7 +76,6 @@ export default function MenuThemesDialog() {
     } else {
       setCurrentThemeID(themeID);
     }
-    window.commonAPI.incrementAchievementStats(['menuThemesSelected']);
   };
 
   // Returns true if the given theme should be highlighted. This incorporates the
@@ -91,7 +85,7 @@ export default function MenuThemesDialog() {
     return currentID === themeID;
   };
 
-  const currentTheme = themes.find((theme) => isSelected(theme.id));
+  const currentTheme = themes.find((theme) => isSelected(theme.id)) || themes[0];
   let accentColorsNode: ReactNode = null;
 
   // Presets state (declared unconditionally so hooks order stays stable)
@@ -102,6 +96,7 @@ export default function MenuThemesDialog() {
 
   // Save preset dialog state
   const [showSavePresetDialog, setShowSavePresetDialog] = React.useState(false);
+  const [previewVersion, setPreviewVersion] = React.useState(0);
 
   React.useEffect(() => {
     // Reset presets when theme changes
@@ -334,7 +329,7 @@ export default function MenuThemesDialog() {
     <Modal
       icon={<TbPaletteFilled />}
       isVisible={themesDialogVisible}
-      maxWidth={1200}
+      maxWidth={950}
       paddingBottom={5}
       paddingLeft={0}
       paddingRight={5}
@@ -421,40 +416,25 @@ export default function MenuThemesDialog() {
           <div className={classes.options} style={{ paddingRight: 4 }}>
             <Button
               isBlock
-              icon={<TbExternalLink />}
-              label={i18next.t('settings.menu-themes-dialog.get-themes-online')}
-              tooltip="https://github.com/kando-menu/menu-themes"
-              onClick={() =>
-                window.open('https://github.com/kando-menu/menu-themes', '_blank')
-              }
-            />
-            <Button
-              isBlock
-              icon={<TbExternalLink />}
-              label={i18next.t('settings.menu-themes-dialog.create-your-own-themes')}
-              tooltip="https://kando.menu/create-menu-themes/"
-              onClick={() =>
-                window.open('https://kando.menu/create-menu-themes/', '_blank')
-              }
-            />
-            <Button
-              isBlock
               icon={<TbFolderOpen />}
               label={i18next.t('settings.menu-themes-dialog.open-theme-directory')}
               onClick={openThemeDirectory}
+            />
+            <Button
+              isBlock
+              icon={<TbReload />}
+              label={i18next.t('settings.general-settings-dialog.reload-menu-theme')}
+              onClick={() => {
+                setPreviewVersion((v) => v + 1);
+                window.settingsAPI.reloadMenuTheme();
+              }}
             />
           </div>
         </div>
         <Scrollbox maxHeight="min(85vh, 700px)" width="100%">
           <div className={classes.themesGrid}>
             {themes.map((theme) => {
-              let previewPath =
-                'file://' + theme.directory + '/' + theme.id + '/preview.jpg';
-
-              // On Windows, we have to replace backslashes with slashes to make the path work.
-              if (cIsWindows) {
-                previewPath = previewPath.replace(/\\/g, '/');
-              }
+              const previewPath = `${theme.directory}/${encodeURIComponent(theme.id)}/preview.jpg?v=${previewVersion}`;
 
               return (
                 <div

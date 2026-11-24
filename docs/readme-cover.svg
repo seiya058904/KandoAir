@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="480" viewBox="0 0 1440 480" role="img" aria-labelledby="title desc">
+  <title id="title">KandoAir — Lightweight Windows Pie Menu in Rust + WebView2</title>
+  <desc id="desc">Original vector illustration showing KandoAir's radial pie menu, marking-mode gesture trail, and lightweight footprint metrics over a calm slate-blue Windows backdrop.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#090F1C"/>
+      <stop offset="0.52" stop-color="#101B2F"/>
+      <stop offset="1" stop-color="#16263E"/>
+    </linearGradient>
+    <radialGradient id="glowCyan" cx="74%" cy="48%" r="44%">
+      <stop offset="0" stop-color="#38BDF8" stop-opacity="0.22"/>
+      <stop offset="0.55" stop-color="#2563EB" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#090F1C" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowMint" cx="62%" cy="84%" r="36%">
+      <stop offset="0" stop-color="#34D399" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#090F1C" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#38BDF8"/>
+      <stop offset="1" stop-color="#34D399"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#38BDF8" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#34D399" stop-opacity="0.85"/>
+    </linearGradient>
+    <linearGradient id="nodeGlass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#273B59" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#162338" stop-opacity="0.92"/>
+    </linearGradient>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M36 0H0V36" fill="none" stroke="#93C5FD" stroke-opacity="0.045" stroke-width="1"/>
+    </pattern>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#020617" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Canvas & atmospheric lighting -->
+  <rect width="1440" height="480" rx="20" fill="url(#bg)"/>
+  <rect width="1440" height="480" rx="20" fill="url(#glowCyan)"/>
+  <rect width="1440" height="480" rx="20" fill="url(#glowMint)"/>
+  <rect width="1440" height="480" rx="20" fill="url(#grid)"/>
+  <rect x="16" y="16" width="1408" height="448" rx="14" fill="none" stroke="#60A5FA" stroke-opacity="0.14" stroke-width="1"/>
+
+  <!-- Left editorial typography -->
+  <rect x="76" y="64" width="68" height="4" rx="2" fill="url(#accent)"/>
+  <g font-family="Segoe UI, -apple-system, BlinkMacSystemFont, sans-serif">
+    <text x="76" y="128" fill="#F8FAFC" font-size="56" font-weight="700" letter-spacing="-1">KandoAir</text>
+    <text x="76" y="170" fill="#94A3B8" font-size="22" font-weight="400">Lightweight Windows pie menu. No Electron.</text>
+
+    <!-- Metric pills -->
+    <g transform="translate(76, 214)">
+      <rect width="236" height="68" rx="12" fill="#132036" stroke="#38BDF8" stroke-opacity="0.26"/>
+      <text x="18" y="30" fill="#38BDF8" font-size="24" font-weight="700">9–20 MB</text>
+      <text x="18" y="52" fill="#94A3B8" font-size="13">Idle RAM (vs 193 MB Electron)</text>
+
+      <rect x="252" width="236" height="68" rx="12" fill="#132036" stroke="#34D399" stroke-opacity="0.26"/>
+      <text x="270" y="30" fill="#34D399" font-size="24" font-weight="700">~25 MB</text>
+      <text x="270" y="52" fill="#94A3B8" font-size="13">Portable total (vs ~190 MB)</text>
+
+      <rect y="84" width="236" height="68" rx="12" fill="#132036" stroke="#60A5FA" stroke-opacity="0.26"/>
+      <text x="18" y="114" fill="#60A5FA" font-size="24" font-weight="700">15–42 ms</text>
+      <text x="18" y="136" fill="#94A3B8" font-size="13">Hotkey to first frame</text>
+
+      <rect x="252" y="84" width="236" height="68" rx="12" fill="#132036" stroke="#A78BFA" stroke-opacity="0.26"/>
+      <text x="270" y="114" fill="#A78BFA" font-size="24" font-weight="700">1.33 MB</text>
+      <text x="270" y="136" fill="#94A3B8" font-size="13">Native Rust host executable</text>
+    </g>
+
+    <text x="76" y="424" fill="#64748B" font-size="13" letter-spacing="1.8">RUST WIN32 HOST  ·  SYSTEM WEBVIEW2  ·  30 LANGUAGES  ·  9 NATIVE ACTIONS</text>
+  </g>
+
+  <!-- Right radial pie menu illustration -->
+  <g transform="translate(1040, 240)" filter="url(#softShadow)">
+    <!-- Outer subtle orbit -->
+    <circle r="176" fill="none" stroke="#60A5FA" stroke-opacity="0.16" stroke-width="1.5" stroke-dasharray="6 8"/>
+    <circle r="134" fill="#0E1729" fill-opacity="0.65" stroke="#38BDF8" stroke-opacity="0.22" stroke-width="1.5"/>
+
+    <!-- Active wedge highlight (top-right) -->
+    <path d="M 0 0 L 42 -127 A 134 134 0 0 1 127 -42 Z" fill="#38BDF8" fill-opacity="0.16"/>
+    <line x1="0" y1="0" x2="96" y2="-96" stroke="url(#ringGrad)" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Center hub -->
+    <circle r="34" fill="url(#nodeGlass)" stroke="url(#ringGrad)" stroke-width="2.5"/>
+    <circle r="10" fill="#38BDF8"/>
+
+    <!-- 6 Radial items -->
+    <!-- Top (0 deg) -->
+    <g transform="translate(0, -134)">
+      <circle r="28" fill="url(#nodeGlass)" stroke="#60A5FA" stroke-opacity="0.45" stroke-width="1.5"/>
+      <rect x="-9" y="-9" width="18" height="18" rx="4" fill="none" stroke="#E2E8F0" stroke-width="2"/>
+      <path d="M-4 0 L0 4 L5 -4" fill="none" stroke="#34D399" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <!-- Top-Right (60 deg) - Active -->
+    <g transform="translate(116, -67)">
+      <circle r="32" fill="#1B3252" stroke="#38BDF8" stroke-width="2.5"/>
+      <path d="M-8 -4 L8 -4 L4 7 L-4 7 Z" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="0" cy="-8" r="2.5" fill="#34D399"/>
+    </g>
+    <!-- Bottom-Right (120 deg) -->
+    <g transform="translate(116, 67)">
+      <circle r="28" fill="url(#nodeGlass)" stroke="#60A5FA" stroke-opacity="0.45" stroke-width="1.5"/>
+      <path d="M-7 -6 L7 0 L-7 6 Z" fill="#E2E8F0"/>
+    </g>
+    <!-- Bottom (180 deg) -->
+    <g transform="translate(0, 134)">
+      <circle r="28" fill="url(#nodeGlass)" stroke="#60A5FA" stroke-opacity="0.45" stroke-width="1.5"/>
+      <circle r="7" fill="none" stroke="#E2E8F0" stroke-width="2"/>
+      <circle r="2" fill="#E2E8F0"/>
+    </g>
+    <!-- Bottom-Left (240 deg) -->
+    <g transform="translate(-116, 67)">
+      <circle r="28" fill="url(#nodeGlass)" stroke="#60A5FA" stroke-opacity="0.45" stroke-width="1.5"/>
+      <path d="M-7 0 H7 M0 -7 V7" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <!-- Top-Left (300 deg) -->
+    <g transform="translate(-116, -67)">
+      <circle r="28" fill="url(#nodeGlass)" stroke="#60A5FA" stroke-opacity="0.45" stroke-width="1.5"/>
+      <path d="M-7 -3 L0 -8 L7 -3 V6 H-7 Z" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Hotkey pill badge -->
+    <g transform="translate(88, 132)">
+      <rect width="128" height="32" rx="16" fill="#132036" stroke="#34D399" stroke-opacity="0.4"/>
+      <text x="64" y="21" text-anchor="middle" fill="#E2E8F0" font-family="Segoe UI, sans-serif" font-size="13" font-weight="600">Ctrl + Space</text>
+    </g>
+  </g>
+</svg>

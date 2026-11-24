@@ -19,15 +19,14 @@ import {
   AccordionItem,
   Headerbar,
   IconChooserButton,
-  SettingsRow,
   TagInput,
   ShortcutPicker,
   Swirl,
   Scrollbox,
   TextInput,
 } from '../common';
-import MenuConditions from './MenuConditions';
 import MenuBehavior from './MenuBehavior';
+import MenuConditions from './MenuConditions';
 import WorkflowEditor from './WorkflowEditor';
 
 /**
@@ -35,7 +34,6 @@ import WorkflowEditor from './WorkflowEditor';
  * right side of the settings dialog.
  */
 export default function Properties() {
-  const backend = useAppState((state) => state.backendInfo);
   const menus = useMenuSettings((state) => state.menus);
   const selectedMenu = useAppState((state) => state.selectedMenu);
   const selectedChildPath = useAppState((state) => state.selectedChildPath);
@@ -63,45 +61,34 @@ export default function Properties() {
 
   // Get the currently selected menu item and whether it is the root item or not.
   const selectedItem = getSelectedChild(menus, selectedMenu, selectedChildPath);
-  const isRoot = selectedItem?.type === 'root';
-
-  // Returns a shortcut picker if the current backend supports shortcuts, else it will
-  // return a text input for the shortcut ID.
-  const getShortcutPicker = () => {
-    if (backend.supportsShortcuts) {
-      return (
-        <ShortcutPicker
-          isGrowing
-          useModifiers
-          info={i18next.t('settings.shortcut-info')}
-          initialValue={menus[selectedMenu].shortcut}
-          label={i18next.t('settings.shortcut-label')}
-          mode="key-names"
-          recordingPlaceholder={i18next.t('settings.shortcut-recording')}
-          onChange={(shortcut) => {
-            editMenu(selectedMenu, (menu) => {
-              menu.shortcut = shortcut;
-              return menu;
-            });
-          }}
-        />
-      );
-    }
+  if (!selectedItem) {
     return (
-      <SettingsRow
-        info={backend.shortcutHint}
-        label={i18next.t('settings.shortcut-id-label')}>
-        <TextInput
-          initialValue={menus[selectedMenu].shortcutID}
-          placeholder={i18next.t('settings.not-bound')}
-          onChange={(shortcutID) => {
-            editMenu(selectedMenu, (menu) => {
-              menu.shortcutID = shortcutID;
-              return menu;
-            });
-          }}
-        />
-      </SettingsRow>
+      <>
+        <Headerbar />
+        <div className={classes.container} />
+      </>
+    );
+  }
+  const isRoot = selectedItem.type === 'root';
+
+  // The picker for the global shortcut which opens the menu.
+  const getShortcutPicker = () => {
+    return (
+      <ShortcutPicker
+        isGrowing
+        useModifiers
+        info={i18next.t('settings.shortcut-info')}
+        initialValue={menus[selectedMenu].shortcut}
+        label={i18next.t('settings.shortcut-label')}
+        mode="key-names"
+        recordingPlaceholder={i18next.t('settings.shortcut-recording')}
+        onChange={(shortcut) => {
+          editMenu(selectedMenu, (menu) => {
+            menu.shortcut = shortcut;
+            return menu;
+          });
+        }}
+      />
     );
   };
 

@@ -8,9 +8,6 @@
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
 // SPDX-License-Identifier: MIT
 
-import { WindowWithAPIs } from '../../settings-window-api';
-declare const window: WindowWithAPIs;
-
 import React from 'react';
 import i18next from 'i18next';
 import classNames from 'classnames/bind';
@@ -22,7 +19,7 @@ import type { Swiper as SwiperClass } from 'swiper';
 import 'swiper/css';
 import 'swiper/css/effect-cards';
 
-import { useAppState, useGeneralSetting } from '../../state';
+import { useAppState, useGeneralSetting, useMenuSettings } from '../../state';
 import { SettingsCheckbox, Modal, Note, Swirl } from '../common';
 
 import * as classes from './IntroDialog.module.scss';
@@ -39,7 +36,15 @@ export default function IntroDialog() {
   const [showIntroductionDialog] = useGeneralSetting('showIntroductionDialog');
   const [activeIndex, setActiveIndex] = React.useState(0);
   const swiperRef = React.useRef<{ swiper: SwiperClass | null }>(null);
-  const backend = useAppState((state) => state.backendInfo);
+  // Kando's text mentions Ctrl+Space. KandoAir chooses another shortcut for the example
+  // menu if an input method uses Ctrl+Space, so the actual shortcut is shown then.
+  const shortcut = useMenuSettings((state) => state.menus[0]?.shortcut ?? '');
+  const slide2Text =
+    shortcut === '' || shortcut === 'Control+Space'
+      ? i18next.t('settings.introduction-dialog.slide2-text-standard')
+      : i18next.t('settings.introduction-dialog.slide2-text-air', {
+          shortcut: shortcut.replace(/\bControl\b/g, 'Ctrl'),
+        });
 
   // Show the introduction dialog if the user has not disabled it in the settings.
   React.useEffect(() => {
@@ -48,13 +53,26 @@ export default function IntroDialog() {
     }
   }, [showIntroductionDialog, setIntroDialogVisible]);
 
-  const makeVideoSlide = (videoNumber: number, text: string) => {
+  // Only the video of the visible slide is playing.
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    containerRef.current?.querySelectorAll('video').forEach((video) => {
+      if (introDialogVisible && Number(video.dataset.slide) === activeIndex) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    });
+  }, [activeIndex, introDialogVisible]);
+
+  const makeVideoSlide = (slideIndex: number, videoNumber: number, text: string) => {
     return (
       <>
         <video
-          autoPlay
           loop
+          muted
           className={classes.fullSize}
+          data-slide={slideIndex}
           src={require(`../../../../assets/videos/introduction-${videoNumber}.mp4`)}
         />
         <div className={classes.caption}>
@@ -104,11 +122,7 @@ export default function IntroDialog() {
       </Note>
       <Swirl marginBottom={20} marginTop={10} variant="2" width={350} />
       <Note isCentered useMarkdown marginLeft="10%" marginRight="10%" noteStyle="normal">
-        {backend.supportsShortcuts
-          ? i18next.t('settings.introduction-dialog.slide2-text-standard')
-          : i18next.t('settings.introduction-dialog.slide2-text-no-shortcuts', {
-              link: 'https://kando.menu/installation-on-linux/#desktop-specifics',
-            })}
+        {slide2Text}
       </Note>
     </React.Fragment>,
     <React.Fragment key="slide3">
@@ -128,7 +142,7 @@ export default function IntroDialog() {
         </Note>
       </div>
     </React.Fragment>,
-    makeVideoSlide(1, i18next.t('settings.introduction-dialog.slide4-text')),
+    makeVideoSlide(3, 1, i18next.t('settings.introduction-dialog.slide4-text')),
     <React.Fragment key="slide5">
       <img
         className={classes.fullSize}
@@ -143,7 +157,7 @@ export default function IntroDialog() {
         </Note>
       </div>
     </React.Fragment>,
-    makeVideoSlide(2, i18next.t('settings.introduction-dialog.slide6-text')),
+    makeVideoSlide(5, 2, i18next.t('settings.introduction-dialog.slide6-text')),
     <React.Fragment key="slide7">
       <Note isCentered marginLeft="10%" marginRight="10%" noteStyle="hero">
         {i18next.t('settings.introduction-dialog.slide7-title')}
@@ -153,7 +167,7 @@ export default function IntroDialog() {
         {i18next.t('settings.introduction-dialog.slide7-text')}
       </Note>
     </React.Fragment>,
-    makeVideoSlide(3, i18next.t('settings.introduction-dialog.slide8-text')),
+    makeVideoSlide(7, 3, i18next.t('settings.introduction-dialog.slide8-text')),
     <React.Fragment key="slide9">
       <Note isCentered marginLeft="10%" marginRight="10%" noteStyle="hero">
         {i18next.t('settings.introduction-dialog.slide9-title')}
@@ -163,19 +177,15 @@ export default function IntroDialog() {
         {i18next.t('settings.introduction-dialog.slide9-text')}
       </Note>
     </React.Fragment>,
-    makeVideoSlide(4, i18next.t('settings.introduction-dialog.slide10-text')),
-    makeVideoSlide(5, i18next.t('settings.introduction-dialog.slide11-text')),
+    makeVideoSlide(9, 4, i18next.t('settings.introduction-dialog.slide10-text')),
+    makeVideoSlide(10, 5, i18next.t('settings.introduction-dialog.slide11-text')),
     <React.Fragment key="slide12">
       <Note isCentered marginLeft="10%" marginRight="10%" noteStyle="hero">
         {i18next.t('settings.introduction-dialog.slide12-title')}
       </Note>
       <Swirl marginBottom={20} marginTop={10} variant="2" width={350} />
       <Note isCentered useMarkdown marginLeft="10%" marginRight="10%" noteStyle="normal">
-        {i18next.t('settings.introduction-dialog.slide12-text', {
-          link1: 'https://kando.menu/menu-themes',
-          link2: 'https://kando.menu/icon-themes',
-          link3: 'https://kando.menu/sound-themes',
-        })}
+        {i18next.t('settings.introduction-dialog.slide12-text-air')}
       </Note>
     </React.Fragment>,
     <React.Fragment key="slide13">
@@ -187,10 +197,7 @@ export default function IntroDialog() {
         marginRight="10%"
         marginTop={10}
         noteStyle="big">
-        {i18next.t('settings.introduction-dialog.slide13-text', {
-          link1: 'https://discord.gg/hZwbVSDkhy',
-          link2: 'https://kando.menu',
-        })}
+        {i18next.t('settings.introduction-dialog.slide13-text-air')}
       </Note>
       <Swirl marginTop={10} variant="3" width={250} />
     </React.Fragment>,
@@ -213,7 +220,7 @@ export default function IntroDialog() {
       paddingLeft={0}
       title={i18next.t('settings.introduction-dialog.title')}
       onClose={() => setIntroDialogVisible(false)}>
-      <div className={classes.container}>
+      <div ref={containerRef} className={classes.container}>
         <div className={classes.sidebar}>
           <ol>
             {chapters.map((chapter) => (
@@ -252,11 +259,6 @@ export default function IntroDialog() {
           modules={[EffectCards]}
           onSlideChange={(swiper) => {
             setActiveIndex(swiper.activeIndex);
-
-            // Check if this is the last slide.
-            if (swiper.activeIndex === slides.length - 1) {
-              window.commonAPI.incrementAchievementStats(['tutorialViewed']);
-            }
           }}>
           {slides.map((slide, index) => (
             <SwiperSlide key={`${String(index)}`} className={classes.slide}>

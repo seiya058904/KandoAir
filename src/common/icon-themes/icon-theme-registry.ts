@@ -92,6 +92,12 @@ export class IconThemeRegistry extends EventEmitter {
    */
   private reloadIteration = 0;
 
+  /** The icon theme for the icons of installed applications. */
+  private systemTheme = new SystemTheme();
+
+  /** The names of the installed applications. */
+  private systemIconNames: Array<string> = [];
+
   /**
    * Use this method to get the singleton instance of this class.
    *
@@ -196,16 +202,23 @@ export class IconThemeRegistry extends EventEmitter {
    * system icons.
    */
   public async reloadSystemIcons() {
-    const systemIcons = await window.commonAPI.getSystemIcons();
-    if (systemIcons.size > 0) {
-      this.iconThemes.set('system', new SystemTheme(systemIcons));
-    } else {
-      this.iconThemes.delete('system');
-    }
-
+    this.systemTheme.setIconNames(this.systemIconNames);
+    this.iconThemes.set('system', this.systemTheme);
     this.reloadIteration += 1;
 
     // Notify listeners that the icon themes have been reloaded.
+    this.emit('reload-icon-themes');
+  }
+
+  /**
+   * Sets the names of the icons of the system theme (the names of the installed apps).
+   * This is only required for the icon picker.
+   *
+   * @param names The names of the installed applications.
+   */
+  public setSystemIconNames(names: Array<string>) {
+    this.systemIconNames = names;
+    this.systemTheme.setIconNames(names);
     this.emit('reload-icon-themes');
   }
 }

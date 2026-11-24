@@ -6,58 +6,44 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+// SPDX-FileCopyrightText: KandoAir contributors
 // SPDX-License-Identifier: MIT
 
 import React from 'react';
-import classNames from 'classnames/bind';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import i18next from 'i18next';
 
 import * as classes from './ActionList.module.scss';
-const cx = classNames.bind(classes);
 
-import { ShortcutPicker, Button, Note, ThemedIcon, InfoItem } from '../common';
+import { ShortcutPicker, Button, Note, ThemedIcon } from '../common';
 import { TbPlus, TbTrash } from 'react-icons/tb';
 import { Workflow, WorkflowAction, ActionTypeRegistry } from '../../../common';
 import ActionPicker from './ActionPicker';
-import { ensureUniqueKeys } from '../../utils';
 import { getConfigComponent } from './actions';
 
 type Props = {
-  /** The description of the workflow type. */
+  /** A description shown below the quick-select key. */
   readonly description: string;
 
-  /**
-   * Whether this is the first workflow type for this item. Used to style the border radii
-   * below the tabs.
-   */
-  readonly isFirstWorkflowType: boolean;
-
-  /**
-   * Whether this is the last workflow type for this item. Used to style the border radii
-   * below the tabs.
-   */
-  readonly isLastWorkflowType: boolean;
-
-  /** The workflow to display and edit. */
+  /** The workflow to edit. */
   readonly workflow?: Workflow;
 
-  /** The empty hint text to display when the workflow has no actions. */
+  /** The maximum number of actions. KandoAir uses one action for buttons. */
+  readonly maxActions: number;
+
+  /** A hint which is shown if the workflow has no actions. */
   readonly emptyHint: string;
 
-  /**
-   * The placeholder text to display in the ShortcutPicker when no quick select key is
-   * bound.
-   */
+  /** The placeholder of the quick-select key picker. */
   readonly quickSelectKeyPlaceholder: string;
 
-  /** The info text shown for the quick select key in the ActionPicker. */
+  /** The info text of the quick-select key picker. */
   readonly quickSelectKeyInfo: string;
 
-  /** Callback to update the workflow. */
+  /** Called when the workflow is modified. */
   readonly onUpdateWorkflow: (workflow: Workflow) => void;
 
-  /** Function to call when the container menu item should be modified. */
+  /** Called when an action wants to modify the containing menu item. */
   readonly onUpdateItem: (info: {
     name?: string;
     icon?: string;
@@ -66,150 +52,48 @@ type Props = {
 };
 
 /**
- * This component displays a list of actions in a workflow. It supports drag-and-drop
- * reordering and allows adding or removing actions.
+ * Shows the quick-select key of a workflow and its action. Selecting an item runs the
+ * action and closes the menu.
  */
 export default function ActionList(props: Props) {
   const [animatedList] = useAutoAnimate({ duration: 200 });
-  const [dragIndex, setDragIndex] = React.useState<number | null>(null);
-  const [dropIndex, setDropIndex] = React.useState<number | null>(null);
   const [actionPickerVisible, setActionPickerVisible] = React.useState(false);
 
-  const actions = props.workflow?.actions || [];
+  const actions = (props.workflow?.actions || []).slice(0, props.maxActions);
 
-  // Apply drag reordering to the display.
-  const displayedActions = actions.map((action, index) => ({
-    action,
-    index,
-    key: `action-${action.type}`,
-  }));
-
-  // Ensure that all keys are unique.
-  ensureUniqueKeys(displayedActions);
-
-  if (dragIndex !== null && dropIndex !== null && dragIndex !== dropIndex) {
-    const [draggedAction] = displayedActions.splice(dragIndex, 1);
-    displayedActions.splice(dropIndex, 0, draggedAction);
-  }
-
-  // Called when the delete button of an action is clicked. Removes the action from the
-  // list and calls onUpdateWorkflow to save the change.
-  const handleDeleteAction = (index: number) => {
-    const newActions = actions.filter((_, i) => i !== index);
+  const updateActions = (newActions: WorkflowAction[]) => {
     props.onUpdateWorkflow({
       ...props.workflow,
       actions: newActions,
     });
   };
 
-  // Called when a new action is selected in the ActionPicker. Adds the new action to
-  // the end of the list and calls onUpdateWorkflow to save the change.
-  const handleAddAction = (action: WorkflowAction) => {
-    const newActions = [...actions, action];
-    props.onUpdateWorkflow({
-      ...props.workflow,
-      actions: newActions,
-    });
-  };
-
-  // Called when an action starts being dragged. Sets the dragIndex to the index of the
-  // dragged action, which will cause the display to update and show the dragged action
-  // in a "dragging" style.
-  const handleDragStart = (event: React.DragEvent<HTMLDivElement>, index: number) => {
-    const item = event.currentTarget;
-    const headers = item.querySelector<HTMLElement>(`.${classes.actionItemHeader}`);
-    const pointerTarget = document.elementFromPoint(event.clientX, event.clientY);
-
-    if (headers === null || pointerTarget === null || !headers.contains(pointerTarget)) {
-      event.preventDefault();
-      return;
-    }
-
-    setDragIndex(index);
-    setDropIndex(index);
-  };
-
-  // Called when an action is dragged over another action. Updates the dropIndex to the
-  // index of the action being dragged over, which will cause the display to update and
-  // show the dragged action in the new position.
-  const handleDragEnter = (index: number) => {
-    if (dragIndex !== null && dragIndex !== index) {
-      if (dragIndex < index) {
-        setDropIndex(dropIndex >= index ? index - 1 : index);
-      } else {
-        setDropIndex(dropIndex <= index ? index + 1 : index);
-      }
-    }
-  };
-
-  // Called when a drag operation ends (either by dropping or cancelling). If dropped, it
-  // updates the action order based on dragIndex and dropIndex, then resets both indices.
-  const handleDragEnd = () => {
-    if (dragIndex !== null && dropIndex !== null && dragIndex !== dropIndex) {
-      const newActions = [...actions];
-      const [draggedAction] = newActions.splice(dragIndex, 1);
-      newActions.splice(dropIndex, 0, draggedAction);
-
-      props.onUpdateWorkflow({
-        ...props.workflow,
-        actions: newActions,
-      });
-    }
-
-    setDragIndex(null);
-    setDropIndex(null);
-  };
-
-  const renderAction = (actionWrapper: {
-    action: WorkflowAction;
-    key: string;
-    index: number;
-  }) => {
-    const { action, index, key } = actionWrapper;
+  const renderAction = (action: WorkflowAction, index: number) => {
     const typeMeta = ActionTypeRegistry.getInstance().getMetadata(action.type);
+    if (!typeMeta) {
+      return null;
+    }
 
     const configWidget = getConfigComponent(
       action,
       (updatedAction) => {
         const newActions = [...actions];
         newActions[index] = updatedAction;
-        props.onUpdateWorkflow({
-          ...props.workflow,
-          actions: newActions,
-        });
+        updateActions(newActions);
       },
       props.onUpdateItem
     );
 
     return (
-      <div
-        key={key}
-        draggable
-        className={cx({
-          actionItem: true,
-          dragging: dragIndex === index,
-        })}
-        onDragEnd={handleDragEnd}
-        onDragEnter={() => handleDragEnter(index)}
-        onDragOver={(event) => event.preventDefault()}
-        onDragStart={(event) => handleDragStart(event, index)}>
+      <div key={`action-${action.type}`} className={classes.actionItem}>
         <div className={classes.actionItemHeader}>
           <ThemedIcon name={typeMeta.icon} size={16} theme={typeMeta.iconTheme} />
-          <div style={{ flexGrow: 1 }}>
-            {typeMeta.name}{' '}
-            {typeMeta.supportedByBackend ? null : (
-              <InfoItem
-                key="warning"
-                isWarning
-                info={i18next.t('settings.workflow-editor.action-not-supported')}
-              />
-            )}
-          </div>
+          <div style={{ flexGrow: 1 }}>{typeMeta.name}</div>
           <Button
             icon={<TbTrash />}
             size="small"
             variant="invisible"
-            onClick={() => handleDeleteAction(index)}
+            onClick={() => updateActions(actions.filter((_, i) => i !== index))}
           />
         </div>
         {configWidget ? (
@@ -222,18 +106,12 @@ export default function ActionList(props: Props) {
   return (
     <div className={classes.actionListContainer}>
       <div ref={animatedList} className={classes.actionList}>
-        <div
-          key="workflow-options"
-          className={cx({
-            actionItem: true,
-            firstWorkflowType: props.isFirstWorkflowType,
-            lastWorkflowType: props.isLastWorkflowType,
-          })}>
+        <div key="workflow-options" className={classes.actionItem}>
           <div className={classes.actionItemContent} style={{ paddingTop: 10 }}>
             <ShortcutPicker
+              info={props.quickSelectKeyInfo}
               initialValue={props.workflow?.quickSelectKey || ''}
               label={i18next.t('settings.quick-select-key-label')}
-              info={props.quickSelectKeyInfo}
               mode="key-names"
               placeholder={props.quickSelectKeyPlaceholder}
               recordingPlaceholder={i18next.t('settings.quick-select-key-recording')}
@@ -241,38 +119,40 @@ export default function ActionList(props: Props) {
               onChange={(shortcut) => {
                 props.onUpdateWorkflow({
                   ...props.workflow,
+                  actions: props.workflow?.actions || [],
                   quickSelectKey: shortcut || undefined,
                 });
               }}
             />
-            <Note marginTop={4}>{props.description}</Note>
+            {props.description ? <Note marginTop={4}>{props.description}</Note> : null}
           </div>
         </div>
 
-        {displayedActions.map((action) => renderAction(action))}
+        {actions.map((action, index) => renderAction(action, index))}
 
-        <div className={classes.addActionContainer}>
-          <Button
-            isBlock
-            icon={<TbPlus />}
-            label={i18next.t('settings.workflow-editor.add-action')}
-            variant="pill"
-            onClick={() => setActionPickerVisible(true)}
-          />
-        </div>
+        {actions.length < props.maxActions ? (
+          <div key="add-action" className={classes.addActionContainer}>
+            <Button
+              isBlock
+              icon={<TbPlus />}
+              label={i18next.t('settings.workflow-editor.add-action')}
+              variant="pill"
+              onClick={() => setActionPickerVisible(true)}
+            />
+          </div>
+        ) : null}
 
-        {displayedActions.length === 0 && (
-          <Note isCentered marginTop={16}>
+        {props.maxActions > 0 && actions.length === 0 && (
+          <Note key="empty-hint" isCentered marginTop={16}>
             {props.emptyHint}
           </Note>
         )}
       </div>
-
       <ActionPicker
         isVisible={actionPickerVisible}
         onClose={() => setActionPickerVisible(false)}
         onSelect={(action) => {
-          handleAddAction(action);
+          updateActions([action]);
           setActionPickerVisible(false);
         }}
       />

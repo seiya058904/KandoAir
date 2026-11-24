@@ -33,14 +33,60 @@ type Props = {
  * @param props - The properties for the color button component.
  * @returns A color button element.
  */
+function safeColorCss(color: string): string {
+  try {
+    return chroma(color).css();
+  } catch {
+    return 'rgba(255, 255, 255, 1)';
+  }
+}
+
 export default function ColorButton(props: Props) {
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
-  const [pickerColor, setPickerColor] = React.useState(chroma(props.color).css());
-  const [cssColor, setCSSColor] = React.useState(chroma(props.color).css());
-  const [inputColor, setInputColor] = React.useState(chroma(props.color).css());
+  const initialCss = safeColorCss(props.color);
+  const [pickerColor, setPickerColor] = React.useState(initialCss);
+  const [cssColor, setCSSColor] = React.useState(initialCss);
+  const [inputColor, setInputColor] = React.useState(initialCss);
+  const throttleTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingColor = React.useRef<string | null>(null);
+  const onChangeRef = React.useRef(props.onChange);
 
   React.useEffect(() => {
-    const color = chroma(props.color).css();
+    onChangeRef.current = props.onChange;
+  }, [props.onChange]);
+
+  React.useEffect(() => {
+    return () => {
+      if (throttleTimer.current) {
+        clearTimeout(throttleTimer.current);
+      }
+    };
+  }, []);
+
+  const emitColorThrottled = React.useCallback((color: string) => {
+    pendingColor.current = color;
+    if (!throttleTimer.current) {
+      throttleTimer.current = setTimeout(() => {
+        throttleTimer.current = null;
+        if (pendingColor.current !== null) {
+          onChangeRef.current?.(pendingColor.current);
+          pendingColor.current = null;
+        }
+      }, 60);
+    }
+  }, []);
+
+  const flushColor = React.useCallback((color: string) => {
+    if (throttleTimer.current) {
+      clearTimeout(throttleTimer.current);
+      throttleTimer.current = null;
+    }
+    pendingColor.current = null;
+    onChangeRef.current?.(color);
+  }, []);
+
+  React.useEffect(() => {
+    const color = safeColorCss(props.color);
     setPickerColor(color);
     setCSSColor(color);
     setInputColor(color);
@@ -58,6 +104,7 @@ export default function ColorButton(props: Props) {
               const converted = chroma(newColor).css();
               setCSSColor(converted);
               setInputColor(converted);
+              emitColorThrottled(converted);
             }}
           />
           <input
@@ -67,9 +114,18 @@ export default function ColorButton(props: Props) {
             onChange={(event) => {
               setInputColor(event.target.value);
               try {
-                setCSSColor(chroma(event.target.value).css());
-              } catch (e) {
-                // ignore
+                const converted = chroma(event.target.value).css();
+                setCSSColor(converted);
+                setPickerColor(converted);
+                emitColorThrottled(converted);
+              } catch {
+                // ignore intermediate invalid color strings while typing
+              }
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                flushColor(cssColor);
+                setIsPopoverOpen(false);
               }
             }}
           />
@@ -78,9 +134,7 @@ export default function ColorButton(props: Props) {
       isVisible={isPopoverOpen}
       position="top"
       onClose={() => {
-        if (props.onChange) {
-          props.onChange(cssColor);
-        }
+        flushColor(cssColor);
         setIsPopoverOpen(false);
       }}>
       <div

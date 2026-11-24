@@ -5,7 +5,6 @@ import type { Configuration } from 'webpack';
 
 import { rules } from './webpack.rules';
 import { plugins } from './webpack.plugins';
-import { ignores } from './webpack.ignores';
 
 // The settings renderer uses CSS modules, so we have to enable them here.
 rules.push({
@@ -25,7 +24,6 @@ export const rendererConfig: Configuration = {
     rules,
   },
   plugins,
-  externals: ignores,
   resolve: {
     extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.scss'],
   },

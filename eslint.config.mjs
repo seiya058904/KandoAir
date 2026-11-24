@@ -85,4 +85,18 @@ export default defineConfig([
       '@typescript-eslint/no-unused-expressions': 'off',
     },
   },
+  {
+    // The pages run in WebView2 and talk to the native host via src/common/host-bridge.ts.
+    // Electron and Node.js modules are not available there.
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: ['electron', 'fs', 'path', 'os', 'child_process', 'net', 'ws'],
+          patterns: ['node:*', 'fs-*', 'electron-*'],
+        },
+      ],
+    },
+  },
 ]);

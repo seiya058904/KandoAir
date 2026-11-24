@@ -79,12 +79,16 @@ export default function Modal(props: Props) {
       return;
     }
 
-    // Hide on escape.
+    // Hide on escape only if this modal is the topmost overlay.
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        if (isVisible) {
-          onClose();
-        }
+      if (
+        event.key === 'Escape' &&
+        isVisible &&
+        modalContent.current &&
+        FocusTrapManager.isTopMost(modalContent.current)
+      ) {
+        event.stopPropagation();
+        onClose();
       }
     };
 

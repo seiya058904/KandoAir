@@ -44,37 +44,49 @@ export default function WindowPicker(props: Props) {
   const [value, setValue] = React.useState(null);
   const [timer, setTimer] = React.useState(timeout + 1);
 
-  // Clear the value when the modal is shown.
+  // Clear the value and stop any active countdown when the modal opens or closes.
   React.useEffect(() => {
+    setTimer(timeout + 1);
     if (props.isVisible) {
       setValue(null);
-      setTimer(timeout + 1);
     }
   }, [props.isVisible]);
 
-  // Reduce the timer every second.
+  // Reduce the timer every second while the modal is visible.
   React.useEffect(() => {
+    if (!props.isVisible) {
+      return;
+    }
+
     if (timer === 0) {
       // Stop the timer.
       setTimer(timeout + 1);
 
+      let cancelled = false;
       window.settingsAPI.getWMInfo().then((wmInfo) => {
+        if (cancelled) {
+          return;
+        }
         if (props.mode === 'application') {
           setValue(wmInfo.appName);
         } else {
           setValue(wmInfo.windowName);
         }
       });
-    } else if (timer <= timeout) {
-      // Start the timer.
-      const interval = setInterval(() => {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (timer <= timeout) {
+      const handle = setTimeout(() => {
         setTimer((prev) => prev - 1);
       }, 1000);
       return () => {
-        clearInterval(interval);
+        clearTimeout(handle);
       };
     }
-  }, [timer, props.mode]);
+  }, [timer, props.mode, props.isVisible]);
 
   const getCaption = () => {
     if (timer > timeout) {
