@@ -991,9 +991,9 @@ export class Menu extends (EventEmitter as new () => TypedEventEmitter<MenuEvent
 
     if (this.draggedItem) {
       this.draggedItem.renderData.nodeDiv.classList.remove('dragged');
-      // Only clear inline transform/position when an item actually stops being dragged
-      // (instead of touching every child's style on every pointermove frame).
-      if (this.draggedItem !== this.centerItem) {
+      // Only clear inline transform/position when a child of the current center item stops
+      // being dragged; parent/ancestor items own the selection chain's screen position.
+      if (this.draggedItem.renderData.parent === this.centerItem) {
         this.draggedItem.renderData.nodeDiv.style.transform = '';
         this.draggedItem.renderData.position = undefined;
       }
