@@ -383,7 +383,13 @@ impl SettingsWindow {
         }
     }
 
-    fn save_state(&self, app: &App) {
+    /// Persists the bounds, the maximized state and the sidebar widths. A window which was
+    /// never shown has no meaningful placement (it is created hidden and restored), so
+    /// nothing is written for it.
+    pub fn save_state(&self, app: &App) {
+        if !self.shown.get() {
+            return;
+        }
         let mut placement = WINDOWPLACEMENT {
             length: std::mem::size_of::<WINDOWPLACEMENT>() as u32,
             ..Default::default()
@@ -425,7 +431,8 @@ impl SettingsWindow {
     /// Closes the web view and destroys the window.
     pub fn destroy(&self) {
         self.webview.borrow_mut().take();
-        if let Some(controller) = self.controller.borrow_mut().take() {
+        let controller = self.controller.borrow_mut().take();
+        if let Some(controller) = controller {
             unsafe {
                 let _ = controller.Close();
             }
@@ -456,14 +463,25 @@ pub fn show(app: &App) {
     window.apply_frame(transparent, use_dark_frame(app));
     *app.settings_window.borrow_mut() = Some(window.clone());
 
+    // Every failure below discards the window so that the next request starts over
+    // instead of focusing a window which never becomes visible. Cleanup in WebView2
+    // callbacks is deferred to the message loop.
     let started = std::time::Instant::now();
     let user_data = app.paths.settings_webview_data();
     let args = app.browser_args(1);
+    let window_for_environment = window.clone();
     let result = webview::create_environment(&user_data, &args, move |environment| {
+        let Some(app) = app::app() else { return };
+        let window = window_for_environment;
+        // The window may have been closed in the meantime.
+        if !is_current(&app, &window) {
+            return;
+        }
         let environment = match environment {
             Ok(e) => e,
             Err(e) => {
                 log!("settings environment creation failed: {e}");
+                app.defer(move |app| discard(app, &window));
                 return;
             }
         };
@@ -473,18 +491,11 @@ pub fn show(app: &App) {
         let result = webview::create_controller(&environment, window.hwnd, move |controller| {
             let Some(app) = app::app() else { return };
             let window = window_for_callback;
-            // The window may have been closed in the meantime.
-            if !app
-                .settings_window
-                .borrow()
-                .as_ref()
-                .map(|w| Rc::ptr_eq(w, &window))
-                .unwrap_or(false)
-            {
+            if !is_current(&app, &window) {
                 if let Ok(controller) = controller {
-                    unsafe {
+                    app.defer(move |_| unsafe {
                         let _ = controller.Close();
-                    }
+                    });
                 }
                 return;
             }
@@ -492,6 +503,7 @@ pub fn show(app: &App) {
                 Ok(c) => c,
                 Err(e) => {
                     log!("settings controller creation failed: {e}");
+                    app.defer(move |app| discard(app, &window));
                     return;
                 }
             };
@@ -505,10 +517,17 @@ pub fn show(app: &App) {
                 Ok(w) => w,
                 Err(e) => {
                     log!("settings web view configuration failed: {e}");
+                    // The controller is not stored in the window yet; close it explicitly.
+                    app.defer(move |app| {
+                        unsafe {
+                            let _ = controller.Close();
+                        }
+                        discard(app, &window);
+                    });
                     return;
                 }
             };
-            app.attach_page(&webview, Page::Settings);
+            app.attach_page(&webview, Page::Settings, window.hwnd);
             app.attach_icons(&webview, environment_for_icons);
             webview::fit_to_window(&controller, window.hwnd);
             unsafe {
@@ -518,14 +537,46 @@ pub fn show(app: &App) {
             }
             *window.controller.borrow_mut() = Some(controller);
             *window.webview.borrow_mut() = Some(webview);
+            // The frame was applied before the controller existed; apply it again so that
+            // opaque flavors get their background color (instead of WebView2's white).
+            window.apply_frame(transparent, use_dark_frame(&app));
             log!("settings web view created after {:?}", started.elapsed());
         });
         if let Err(e) = result {
             log!("CreateCoreWebView2Controller (settings) failed: {e}");
+            app.defer(move |app| discard(app, &window));
         }
     });
     if let Err(e) = result {
         log!("CreateCoreWebView2EnvironmentWithOptions (settings) failed: {e}");
+        app.defer(move |app| discard(app, &window));
+    }
+}
+
+/// Whether `window` is still the app's settings window.
+fn is_current(app: &App, window: &Rc<SettingsWindow>) -> bool {
+    app.settings_window
+        .borrow()
+        .as_ref()
+        .is_some_and(|w| Rc::ptr_eq(w, window))
+}
+
+/// Destroys the settings window if it is still the current one. The window state is not
+/// saved here; callers which close a shown window save it first (see WM_CLOSE).
+pub fn discard(app: &App, window: &Rc<SettingsWindow>) {
+    if !is_current(app, window) {
+        return;
+    }
+    let _ = app.take_settings_window();
+    window.destroy();
+    apps::forget();
+    app.on_settings_closed();
+}
+
+/// Discards the settings window if `hwnd` belongs to it (used after process failures).
+pub fn discard_window(app: &App, hwnd: HWND) {
+    if let Some(window) = window(app).filter(|w| w.hwnd == hwnd) {
+        discard(app, &window);
     }
 }
 
@@ -1164,10 +1215,7 @@ extern "system" fn settings_wndproc(
                 unsafe {
                     let _ = ShowWindow(hwnd, SW_HIDE);
                 }
-                app.settings_window.borrow_mut().take();
-                window.destroy();
-                apps::forget();
-                app.on_settings_closed();
+                discard(&app, &window);
             } else {
                 unsafe {
                     let _ = DestroyWindow(hwnd);

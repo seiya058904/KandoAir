@@ -14,6 +14,9 @@
         },
         "niri": {
             "shortcut-info": "Niri 尚不支持全局快捷键。但您可以通过命令行执行 'kando --menu \"菜单名称\"' 或在您的 Niri 配置文件中设定，以开启该菜单。"
+        },
+        "kde": {
+            "error": "无法连接到 KandoAir 的 KWin 插件，部分功能将不可用。可从[此处]({{link}})获取。"
         }
     },
     "example-menu": {
@@ -495,6 +498,9 @@
         "import-menu-error-title": "导入菜单失败",
         "import-menu-error-message": "无法导入所选的文件。该文件不是从 KandoAir 导出的有效菜单。",
         "export-menu": "导出菜单",
+        "fix-menu-item-angle": "固定此菜单项的角度。启用后，拖动该项即可更新角度。",
+        "edit-submenu": "编辑子菜单",
+        "drop-here-to-delete": "拖到此处以删除",
         "import-menu": "导入菜单",
         "quick-select-key-info": "此按键可让您快速选择菜单项。",
         "quick-select-key-label": "快速选择键",
@@ -516,6 +522,25 @@
                 "empty-hint": "当前打开子菜单后没有可执行操作，请使用上方按钮为此工作流新增操作！",
                 "quick-select-key-hint": "按下此按键将打开子菜单。"
             },
+            "submenu-hover-workflow": {
+                "description": "当指针悬停在该子菜单项上时，会执行下列操作。",
+                "empty-hint": "当前悬停于此子菜单时没有可执行操作，请使用上方按钮为此工作流新增操作！",
+                "quick-select-key-hint": "当上层菜单开启时，按下此按键也会触发悬停的工作流。"
+            },
+            "submenu-activate-workflow": {
+                "description": "点击此子菜单中心后，将触发下列动作。",
+                "empty-hint": "当前点击此子菜单中心后没有可执行操作，请使用上方按钮为此工作流新增操作！",
+                "quick-select-key-hint": "当子菜单开启时，按下此按键也会触发中心点击工作流。"
+            },
+            "root-activate-workflow": {
+                "description": "点击顶层菜单中心后，将触发下列动作。",
+                "empty-hint": "当前点击顶层菜单中心后没有可执行操作，请使用上方按钮为此工作流新增操作！",
+                "quick-select-key-hint": "当顶层菜单开启时，按下此按键也会触发中心点击工作流。"
+            },
+            "action-picker": {
+                "search-placeholder": "搜索动作…"
+            },
+            "select-workflow-name": "选择工作流",
             "hover-workflow-name": "悬停工作流",
             "activate-workflow-name": "中心点击工作流",
             "open-workflow-name": "打开工作流",
@@ -672,11 +697,46 @@
             "hotkey-info": "选择该菜单项时，将触发此快捷键。在录制快捷键时，您不必一次按下所有按键，也可以一个接一个地按。这在热键已绑定到某个全局操作时非常有用！",
             "description-auto-close": "替你按下一组快捷键。菜单会先关闭，按键会发送到你刚才使用的窗口。"
         },
+        "set-clipboard": {
+            "name": "写入剪贴板",
+            "description": "将指定文本存入剪贴板。写入后可再添加一个 Ctrl+V 快捷键动作来粘贴文本。",
+            "placeholder": "输入任意文本…"
+        },
+        "send-websocket-message": {
+            "name": "发送 WebSocket 消息",
+            "description": "连接到 WebSocket 服务器并发送消息。",
+            "url-label": "URL",
+            "message-label": "消息",
+            "message-placeholder": "输入消息…"
+        },
         "execute-macro": {
             "name": "模拟宏",
             "description": "按顺序触发多个按键。若希望该快捷键作用于活动应用程序而非菜单，请务必在此之前添加关闭菜单操作！",
             "placeholder": "点击录制按钮开始录制！",
             "recording-placeholder": "请按下按键…"
+        },
+        "delay": {
+            "name": "延迟",
+            "description": "将工作流暂停指定的时长。",
+            "duration-info": "工作流的执行将延迟这段时间。",
+            "duration-label": "秒"
+        },
+        "close-menu": {
+            "name": "关闭菜单",
+            "description": "关闭当前菜单。此动作在工作流中的位置很重要！其后的动作会等菜单完全淡出后才执行。"
+        },
+        "close-submenu": {
+            "name": "关闭子菜单",
+            "description": "返回上一级菜单。"
+        },
+        "inhibit-shortcuts": {
+            "name": "暂停快捷键",
+            "description": "在此工作流剩余的执行期间，停用所有 KandoAir 快捷键。"
+        },
+        "focus-window": {
+            "name": "聚焦窗口",
+            "description": "将指定窗口切换到前台。可在执行快捷键或宏动作前，用它聚焦目标应用程序。",
+            "hint": "KandoAir 会尝试查找标题或应用程序名称（或两者）匹配的窗口。可使用正则表达式进行更灵活的匹配，例如用 /firefox|chrome/i 匹配任意网页浏览器。"
         },
         "launch-app": {
             "name": "启动应用",

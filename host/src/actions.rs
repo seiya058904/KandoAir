@@ -10,6 +10,7 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::Sender;
 use std::time::{Duration, Instant};
 
 use windows::Win32::Foundation::HWND;
@@ -156,6 +157,44 @@ fn command_failure(code: Option<i32>, stderr: &[u8]) -> Failure {
     Failure::Other(text)
 }
 
+/// The amount of error output which is kept for failure messages.
+const MAX_STDERR: usize = 4096;
+
+/// Reads the error output of a detached command until the command closes it. The first
+/// 4 KiB (or all of it, if the output ends earlier) are sent once to `tx`. Once `stop` is
+/// set, nobody waits for them any more and the rest is discarded. The pipe is drained
+/// to the end (like Kando does) because closing it early makes later writes of
+/// long-running commands to stderr fail.
+fn read_stderr(pipe: &mut impl Read, stop: &AtomicBool, tx: Sender<Vec<u8>>) {
+    let mut tx = Some(tx);
+    let mut output = Vec::new();
+    let mut buf = [0u8; 512];
+    loop {
+        let n = match pipe.read(&mut buf) {
+            Ok(0) | Err(_) => break,
+            Ok(n) => n,
+        };
+        if tx.is_none() {
+            continue;
+        }
+        if stop.load(Ordering::Relaxed) {
+            tx = None;
+            output = Vec::new();
+            continue;
+        }
+        let take = n.min(MAX_STDERR - output.len());
+        output.extend_from_slice(&buf[..take]);
+        if output.len() >= MAX_STDERR
+            && let Some(tx) = tx.take()
+        {
+            let _ = tx.send(std::mem::take(&mut output));
+        }
+    }
+    if let Some(tx) = tx {
+        let _ = tx.send(output);
+    }
+}
+
 /// Runs a command with `cmd.exe /d /s /c` without a console window. Detached commands are
 /// considered successful if they are still running after one second; their error output
 /// is drained in the background. Attached commands are awaited.
@@ -201,27 +240,11 @@ pub fn execute_command(
     }
 
     // Collect up to 4 KiB of stderr while we wait up to 1 s for an early startup failure.
-    // Once we return Ok(()), signal the reader to stop and close the pipe so detached apps
-    // never leak a long-lived reader thread or unbounded buffer.
-    const MAX_STDERR: usize = 4096;
     let (tx, rx) = std::sync::mpsc::channel::<Vec<u8>>();
     let stop = Arc::new(AtomicBool::new(false));
     if let Some(mut pipe) = stderr {
         let stop_flag = stop.clone();
-        std::thread::spawn(move || {
-            let mut output = Vec::new();
-            let mut buf = [0u8; 512];
-            while !stop_flag.load(Ordering::Relaxed) && output.len() < MAX_STDERR {
-                match pipe.read(&mut buf) {
-                    Ok(0) | Err(_) => break,
-                    Ok(n) => {
-                        let take = n.min(MAX_STDERR - output.len());
-                        output.extend_from_slice(&buf[..take]);
-                    }
-                }
-            }
-            let _ = tx.send(output);
-        });
+        std::thread::spawn(move || read_stderr(&mut pipe, &stop_flag, tx));
     }
 
     let start = Instant::now();
@@ -470,6 +493,30 @@ mod tests {
                 r"C:\definitely\not\existing\app.exe".into()
             ))
         );
+    }
+
+    #[test]
+    fn error_output_is_drained_to_the_end() {
+        // Long output: the first 4 KiB are reported once, the rest is still consumed.
+        let mut pipe = std::io::Cursor::new(vec![b'x'; 10_000]);
+        let (tx, rx) = std::sync::mpsc::channel();
+        read_stderr(&mut pipe, &AtomicBool::new(false), tx);
+        assert_eq!(pipe.position(), 10_000);
+        assert_eq!(rx.recv().unwrap().len(), MAX_STDERR);
+        assert!(rx.recv().is_err());
+
+        // Short output is reported when it ends.
+        let mut pipe = std::io::Cursor::new(b"boom".to_vec());
+        let (tx, rx) = std::sync::mpsc::channel();
+        read_stderr(&mut pipe, &AtomicBool::new(false), tx);
+        assert_eq!(rx.recv().unwrap(), b"boom");
+
+        // After the caller stopped waiting, the output is discarded but still drained.
+        let mut pipe = std::io::Cursor::new(vec![b'x'; 10_000]);
+        let (tx, rx) = std::sync::mpsc::channel();
+        read_stderr(&mut pipe, &AtomicBool::new(true), tx);
+        assert_eq!(pipe.position(), 10_000);
+        assert!(rx.recv().is_err());
     }
 
     #[test]

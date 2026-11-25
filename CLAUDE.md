@@ -41,6 +41,11 @@ menu and settings pages are Kando's original web frontends hosted in WebView2.
   credited only in the about dialog (`settings.about-dialog.message-air`), the README and
   the license files; nothing links to Kando's website, Discord or donation pages
   (`test/branding.spec.ts`).
+- Never hold a `RefCell` borrow across Win32/WebView2 calls which can re-enter a window
+  procedure (`DestroyWindow`, `ShowWindow`, `TrackPopupMenuEx`, modal dialogs): the
+  re-entrant borrow panics in an `extern "system"` callback and aborts the process. Take
+  the value into a local first (test `no_mutable_borrows_in_scrutinees` guards the
+  `if let`/`match` form).
 - Text files use LF line endings. When editing files with Python on Windows, write bytes
   or pass `newline='\n'`.
 

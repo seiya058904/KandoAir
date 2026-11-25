@@ -285,7 +285,8 @@ impl MenuWindow {
     /// Closes the web view and destroys the window.
     pub fn destroy(&self) {
         self.webview.borrow_mut().take();
-        if let Some(controller) = self.controller.borrow_mut().take() {
+        let controller = self.controller.borrow_mut().take();
+        if let Some(controller) = controller {
             unsafe {
                 let _ = controller.Close();
             }

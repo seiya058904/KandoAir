@@ -120,3 +120,37 @@ fn main() {
     }
     log!("KandoAir stopped");
 }
+
+#[cfg(test)]
+mod tests {
+    /// A `RefMut` in the scrutinee of `if let`, `while let` or `match` lives until the end
+    /// of the block. Win32 calls in the block (DestroyWindow, ShowWindow, modal loops)
+    /// re-enter window procedures which borrow the same cell again, and the panic aborts
+    /// the process. Take the value into a local first. (Clippy's
+    /// `significant_drop_in_scrutinee` does not catch this for `RefMut`.)
+    #[test]
+    fn no_mutable_borrows_in_scrutinees() {
+        let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/src");
+        let mut offenders = Vec::new();
+        for entry in std::fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.extension().is_none_or(|e| e != "rs") {
+                continue;
+            }
+            let text = std::fs::read_to_string(&path).unwrap();
+            for (index, line) in text.lines().enumerate() {
+                let code = line.trim_start();
+                let scrutinee = code.contains("if let ")
+                    || code.contains("while let ")
+                    || code.starts_with("match ");
+                if scrutinee && code.contains(".borrow_mut()") {
+                    offenders.push(format!("{}:{}", path.display(), index + 1));
+                }
+            }
+        }
+        assert!(
+            offenders.is_empty(),
+            "take the value out of the RefCell before the block: {offenders:?}"
+        );
+    }
+}

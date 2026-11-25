@@ -6,7 +6,8 @@
 use std::path::Path;
 
 use windows::Win32::Foundation::{
-    CloseHandle, ERROR_FILE_NOT_FOUND, ERROR_SUCCESS, GlobalFree, HANDLE, HWND, LPARAM,
+    CloseHandle, ERROR_FILE_NOT_FOUND, ERROR_MORE_DATA, ERROR_SUCCESS, GlobalFree, HANDLE, HWND,
+    LPARAM,
 };
 use windows::Win32::Graphics::Dwm::{DWMWA_CLOAKED, DwmGetWindowAttribute};
 use windows::Win32::Security::{GetTokenInformation, TOKEN_ELEVATION, TOKEN_QUERY, TokenElevation};
@@ -182,33 +183,59 @@ fn registry_dword(root: HKEY, key: &str, value: &str) -> Option<u32> {
 }
 
 fn registry_string(root: HKEY, key: &str, value: &str) -> Option<String> {
-    let mut buffer = [0u16; 256];
-    let mut size = (buffer.len() * 2) as u32;
-    let status = unsafe {
-        RegGetValueW(
-            root,
-            &HSTRING::from(key),
-            &HSTRING::from(value),
-            RRF_RT_REG_SZ,
-            None,
-            Some(buffer.as_mut_ptr() as *mut _),
-            Some(&mut size),
-        )
-    };
-    if status != ERROR_SUCCESS {
-        return None;
+    let key = HSTRING::from(key);
+    let value = HSTRING::from(value);
+    // Query the size first. The value may grow in between, so retry once.
+    for _ in 0..2 {
+        let mut size = 0u32;
+        let status = unsafe {
+            RegGetValueW(root, &key, &value, RRF_RT_REG_SZ, None, None, Some(&mut size))
+        };
+        if status != ERROR_SUCCESS {
+            return None;
+        }
+        let mut buffer = vec![0u16; (size as usize).div_ceil(2)];
+        let status = unsafe {
+            RegGetValueW(
+                root,
+                &key,
+                &value,
+                RRF_RT_REG_SZ,
+                None,
+                Some(buffer.as_mut_ptr() as *mut _),
+                Some(&mut size),
+            )
+        };
+        if status == ERROR_MORE_DATA {
+            continue;
+        }
+        if status != ERROR_SUCCESS {
+            return None;
+        }
+        let chars = (size as usize / 2).saturating_sub(1).min(buffer.len());
+        return Some(String::from_utf16_lossy(&buffer[..chars]));
     }
-    let chars = (size as usize / 2).saturating_sub(1);
-    Some(String::from_utf16_lossy(&buffer[..chars]))
+    None
 }
 
 const RUN_KEY: &str = r"Software\Microsoft\Windows\CurrentVersion\Run";
 const AUTO_START_VALUE: &str = "KandoAir";
 
-/// Whether KandoAir is registered to start automatically at Windows login.
+/// Whether a `Run` value (written by [`set_auto_start`] as the quoted path) starts `exe`.
+fn is_current_command(value: &str, exe: &Path) -> bool {
+    let registered = value.trim().trim_matches('"');
+    !registered.is_empty() && registered.to_lowercase() == exe.to_string_lossy().to_lowercase()
+}
+
+/// Whether this executable is registered to start automatically at Windows login. A value
+/// which points to another copy (e.g. after the portable folder was moved) counts as
+/// disabled; enabling the setting again registers this copy.
 pub fn auto_start_enabled() -> bool {
+    let Ok(exe) = std::env::current_exe() else {
+        return false;
+    };
     registry_string(HKEY_CURRENT_USER, RUN_KEY, AUTO_START_VALUE)
-        .is_some_and(|v| !v.trim().is_empty())
+        .is_some_and(|v| is_current_command(&v, &exe))
 }
 
 /// Enables or disables starting KandoAir at Windows login via `HKCU\...\Run`.
@@ -548,5 +575,29 @@ mod tests {
         assert!(matches_condition("/exe$/i", "Code.EXE"));
         assert!(matches_condition("/tab-\\d+/i", "My TAB-42 Window"));
         assert!(matches_condition("/home/user/file", "vim /home/user/file"));
+    }
+
+    #[test]
+    fn auto_start_commands_must_point_to_this_executable() {
+        let exe = Path::new(r"C:\Tools\KandoAir\KandoAir.exe");
+        assert!(is_current_command(r#""C:\Tools\KandoAir\KandoAir.exe""#, exe));
+        assert!(is_current_command(r#""c:\tools\kandoair\KANDOAIR.EXE""#, exe));
+        assert!(!is_current_command(r#""D:\Old\KandoAir\KandoAir.exe""#, exe));
+        assert!(!is_current_command("", exe));
+        assert!(!is_current_command(r#""""#, exe));
+        let unicode = Path::new(r"D:\工具\Ärger\KandoAir.exe");
+        assert!(is_current_command(r#""D:\工具\äRGER\KandoAir.exe""#, unicode));
+    }
+
+    #[test]
+    fn registry_strings_are_read() {
+        // A value that exists on every Windows installation.
+        let build = registry_string(
+            HKEY_LOCAL_MACHINE,
+            r"SOFTWARE\Microsoft\Windows NT\CurrentVersion",
+            "CurrentBuildNumber",
+        );
+        assert!(build.is_some_and(|b| b.parse::<u32>().is_ok()));
+        assert!(registry_string(HKEY_CURRENT_USER, RUN_KEY, "KandoAir-does-not-exist").is_none());
     }
 }

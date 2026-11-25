@@ -55,6 +55,9 @@ const TIMER_RETRY_MENU: usize = 15;
 
 /// Delay after hiding the menu before its web view is trimmed and suspended.
 const MENU_IDLE_DELAY_MS: u32 = 5000;
+/// Consecutive automatic attempts to recreate a failed menu web view. After that, the
+/// menu is only recreated when it is requested again.
+const MAX_MENU_RETRIES: u32 = 3;
 
 const TRAY_SETTINGS: u32 = 1;
 const TRAY_PAUSE: u32 = 2;
@@ -239,6 +242,7 @@ pub struct App {
     environment_creating: Cell<bool>,
     menu_window: RefCell<Option<Rc<MenuWindow>>>,
     menu_ready: Cell<bool>,
+    menu_retries: Cell<u32>,
     pending_show: RefCell<Option<ShowRequest>>,
     state: RefCell<MenuState>,
     pub settings_window: RefCell<Option<Rc<SettingsWindow>>>,
@@ -322,6 +326,7 @@ impl App {
             environment_creating: Cell::new(false),
             menu_window: RefCell::new(None),
             menu_ready: Cell::new(false),
+            menu_retries: Cell::new(0),
             pending_show: RefCell::new(None),
             state: RefCell::new(MenuState::default()),
             settings_window: RefCell::new(None),
@@ -623,6 +628,7 @@ impl App {
                     Err(e) => {
                         log!("WebView2 environment creation failed: {e}");
                         app.environment_waiters.borrow_mut().clear();
+                        app.defer(|app| app.on_menu_environment_failed());
                     }
                 }
             },
@@ -631,6 +637,7 @@ impl App {
             log!("CreateCoreWebView2EnvironmentWithOptions failed: {e}");
             self.environment_creating.set(false);
             self.environment_waiters.borrow_mut().clear();
+            self.defer(|app| app.on_menu_environment_failed());
         }
     }
 
@@ -650,8 +657,9 @@ impl App {
         args.join(" ")
     }
 
-    /// Connects a web view to the message router and the navigation guard.
-    pub fn attach_page(&self, webview: &ICoreWebView2, page: Page) {
+    /// Connects a web view to the message router and the navigation guard. `hwnd` is the
+    /// window hosting the web view; process failures are only handled for that window.
+    pub fn attach_page(&self, webview: &ICoreWebView2, page: Page, hwnd: HWND) {
         let _ = webview::on_message(webview, move |json, source, files| {
             if !webview::is_app_url(&source) {
                 log!("ignoring message from {source}");
@@ -670,24 +678,29 @@ impl App {
         });
         let _ = webview::on_process_failed(webview, move |kind| {
             log!("WebView2 process failed ({page:?}): {}", kind.0);
+            // Recover from the message loop instead of inside the WebView2 event handler.
             if let Some(app) = app() {
-                app.on_process_failed(page, kind);
+                app.defer(move |app| app.on_process_failed(page, kind, hwnd));
             }
         });
     }
 
-    fn on_process_failed(&self, page: Page, kind: COREWEBVIEW2_PROCESS_FAILED_KIND) {
+    fn on_process_failed(&self, page: Page, kind: COREWEBVIEW2_PROCESS_FAILED_KIND, hwnd: HWND) {
         let render_gone = kind == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED
             || kind == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE
             || kind == COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED;
         if !render_gone {
             return;
         }
-        if kind == COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED {
-            *self.environment.borrow_mut() = None;
-        }
         match page {
             Page::Menu => {
+                // Ignore repeated or late reports for a menu window which is already gone.
+                if self.menu().is_none_or(|m| m.hwnd != hwnd) {
+                    return;
+                }
+                if kind == COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED {
+                    *self.environment.borrow_mut() = None;
+                }
                 // Release any active hotkey inhibition and recreate the menu web view.
                 let inhibition = {
                     let mut state = self.state.borrow_mut();
@@ -700,20 +713,10 @@ impl App {
                     let _ = self.with_hotkeys(|h| h.release(inhibition));
                 }
                 self.bind_shortcuts();
-                if let Some(menu) = self.menu_window.borrow_mut().take() {
-                    menu.destroy();
-                }
-                self.menu_ready.set(false);
-                self.suspended.set(false);
-                unsafe {
-                    SetTimer(Some(self.host.get()), TIMER_RETRY_MENU, 1000, None);
-                }
+                self.discard_menu_window(hwnd);
+                self.schedule_menu_retry();
             }
-            Page::Settings => {
-                if let Some(window) = self.settings_window.borrow_mut().take() {
-                    window.destroy();
-                }
-            }
+            Page::Settings => settings_window::discard_window(self, hwnd),
         }
     }
 
@@ -830,6 +833,7 @@ impl App {
             "menu-window.ready" => {
                 log!("menu page ready");
                 self.menu_ready.set(true);
+                self.menu_retries.set(0);
                 // Trim and suspend the menu until it is shown for the first time.
                 unsafe {
                     SetTimer(
@@ -839,7 +843,8 @@ impl App {
                         None,
                     );
                 }
-                if let Some(pending) = self.pending_show.borrow_mut().take() {
+                let pending = self.pending_show.borrow_mut().take();
+                if let Some(pending) = pending {
                     self.show_menu(pending);
                 }
             }
@@ -891,15 +896,26 @@ impl App {
         self.menu_ready.set(false);
 
         let started = Instant::now();
-        self.with_environment(move |_, environment| {
+        let hwnd = menu.hwnd;
+        self.with_environment(move |this, environment| {
             let menu_for_callback = menu.clone();
             let result = webview::create_controller(environment, menu.hwnd, move |controller| {
                 let Some(app) = app() else { return };
                 let menu = menu_for_callback;
+                // The window may have been discarded in the meantime.
+                if app.menu().is_none_or(|m| !Rc::ptr_eq(&m, &menu)) {
+                    if let Ok(controller) = controller {
+                        app.defer(move |_| unsafe {
+                            let _ = controller.Close();
+                        });
+                    }
+                    return;
+                }
                 let controller = match controller {
                     Ok(c) => c,
                     Err(e) => {
                         log!("menu controller creation failed: {e}");
+                        app.defer(move |app| app.on_menu_web_view_failed(hwnd));
                         return;
                     }
                 };
@@ -913,10 +929,16 @@ impl App {
                     Ok(w) => w,
                     Err(e) => {
                         log!("menu web view configuration failed: {e}");
+                        app.defer(move |app| {
+                            unsafe {
+                                let _ = controller.Close();
+                            }
+                            app.on_menu_web_view_failed(hwnd);
+                        });
                         return;
                     }
                 };
-                app.attach_page(&webview, Page::Menu);
+                app.attach_page(&webview, Page::Menu, hwnd);
                 if let Some(environment) = app.environment.borrow().clone() {
                     app.attach_icons(&webview, environment);
                 }
@@ -931,12 +953,67 @@ impl App {
             });
             if let Err(e) = result {
                 log!("CreateCoreWebView2Controller failed: {e}");
+                this.defer(move |app| app.on_menu_web_view_failed(hwnd));
             }
         });
     }
 
     fn menu(&self) -> Option<Rc<MenuWindow>> {
         self.menu_window.borrow().clone()
+    }
+
+    /// Removes the menu window from the app. The borrow ends before the caller destroys
+    /// the window, whose window procedure may access the app again.
+    fn take_menu_window(&self) -> Option<Rc<MenuWindow>> {
+        self.menu_window.borrow_mut().take()
+    }
+
+    /// Removes the settings window from the app (see [`App::take_menu_window`]).
+    pub fn take_settings_window(&self) -> Option<Rc<SettingsWindow>> {
+        self.settings_window.borrow_mut().take()
+    }
+
+    /// Destroys the menu window if `hwnd` is still the current one.
+    fn discard_menu_window(&self, hwnd: HWND) {
+        if self.menu().is_none_or(|m| m.hwnd != hwnd) {
+            return;
+        }
+        let menu = self.take_menu_window();
+        self.menu_ready.set(false);
+        self.suspended.set(false);
+        if let Some(menu) = menu {
+            menu.destroy();
+        }
+    }
+
+    /// The menu web view could not be created: start over with a fresh window.
+    fn on_menu_web_view_failed(&self, hwnd: HWND) {
+        if self.menu().is_none_or(|m| m.hwnd != hwnd) {
+            return;
+        }
+        self.discard_menu_window(hwnd);
+        self.schedule_menu_retry();
+    }
+
+    fn on_menu_environment_failed(&self) {
+        if let Some(menu) = self.menu() {
+            self.on_menu_web_view_failed(menu.hwnd);
+        }
+    }
+
+    /// Recreates the menu web view after a second, up to [`MAX_MENU_RETRIES`] times in a
+    /// row. After that, it is recreated when a menu is requested again.
+    fn schedule_menu_retry(&self) {
+        let attempt = self.menu_retries.get() + 1;
+        self.menu_retries.set(attempt);
+        if attempt <= MAX_MENU_RETRIES {
+            unsafe {
+                SetTimer(Some(self.host.get()), TIMER_RETRY_MENU, 1000, None);
+            }
+        } else {
+            log!("menu web view failed {attempt} times in a row; waiting for the next request");
+            self.pending_show.borrow_mut().take();
+        }
     }
 
     fn resume_menu(&self) {
@@ -1450,6 +1527,9 @@ impl App {
     // ---------------------------------------------------------------------------------- //
 
     pub fn show_settings(&self) {
+        // If a menu is still fading out, hiding it must not give the focus back to the
+        // previous window: the settings window should stay in front.
+        self.state.borrow_mut().restore_focus = false;
         settings_window::show(self);
     }
 
@@ -1502,12 +1582,12 @@ impl App {
             });
         }
 
-        let command = {
-            let tray = self.tray.borrow();
-            match tray.as_ref() {
-                Some(t) => t.show_menu(&entries),
-                None => 0,
-            }
+        // No borrow of the tray may be held here: the menu runs a modal message loop which
+        // dispatches timers and notifications that modify the tray.
+        let command = if self.tray.borrow().is_some() {
+            tray::show_menu(self.host.get(), &entries)
+        } else {
+            0
         };
         match command {
             0 => {}
@@ -1591,10 +1671,11 @@ impl App {
     pub fn quit(&self) {
         log!("quitting");
         self.flush_settings();
-        if let Some(window) = self.settings_window.borrow_mut().take() {
+        if let Some(window) = self.take_settings_window() {
+            window.save_state(self);
             window.destroy();
         }
-        if let Some(menu) = self.menu_window.borrow_mut().take() {
+        if let Some(menu) = self.take_menu_window() {
             menu.destroy();
         }
         self.with_hotkeys(|h| h.clear());

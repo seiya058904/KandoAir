@@ -173,44 +173,46 @@ impl Tray {
             self.added = false;
         }
     }
+}
 
-    /// Shows the context menu at the pointer and returns the chosen command (0 = none).
-    pub fn show_menu(&self, entries: &[MenuEntry]) -> u32 {
-        unsafe {
-            let Ok(menu) = CreatePopupMenu() else {
-                return 0;
-            };
-            for entry in entries {
-                match entry {
-                    MenuEntry::Item { id, label, checked } => {
-                        let label = windows::core::HSTRING::from(label.as_str());
-                        let mut flags = MF_STRING;
-                        if *checked {
-                            flags |= MF_CHECKED;
-                        }
-                        let _ = AppendMenuW(menu, flags, *id as usize, &label);
+/// Shows the context menu of the tray icon owned by `hwnd` at the pointer and returns the
+/// chosen command (0 = none). It is not a method of [`Tray`] because the menu runs a modal
+/// message loop, during which the tray must not be borrowed.
+pub fn show_menu(hwnd: HWND, entries: &[MenuEntry]) -> u32 {
+    unsafe {
+        let Ok(menu) = CreatePopupMenu() else {
+            return 0;
+        };
+        for entry in entries {
+            match entry {
+                MenuEntry::Item { id, label, checked } => {
+                    let label = windows::core::HSTRING::from(label.as_str());
+                    let mut flags = MF_STRING;
+                    if *checked {
+                        flags |= MF_CHECKED;
                     }
-                    MenuEntry::Separator => {
-                        let _ = AppendMenuW(menu, MF_SEPARATOR, 0, None);
-                    }
+                    let _ = AppendMenuW(menu, flags, *id as usize, &label);
+                }
+                MenuEntry::Separator => {
+                    let _ = AppendMenuW(menu, MF_SEPARATOR, 0, None);
                 }
             }
-            let mut point = POINT::default();
-            let _ = GetCursorPos(&mut point);
-            // Required so that the menu closes when the user clicks elsewhere.
-            let _ = SetForegroundWindow(self.hwnd);
-            let command = TrackPopupMenuEx(
-                menu,
-                (TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_NONOTIFY).0,
-                point.x,
-                point.y,
-                self.hwnd,
-                None,
-            );
-            let _ = PostMessageW(Some(self.hwnd), WM_NULL, WPARAM(0), LPARAM(0));
-            let _ = DestroyMenu(menu);
-            command.0 as u32
         }
+        let mut point = POINT::default();
+        let _ = GetCursorPos(&mut point);
+        // Required so that the menu closes when the user clicks elsewhere.
+        let _ = SetForegroundWindow(hwnd);
+        let command = TrackPopupMenuEx(
+            menu,
+            (TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_NONOTIFY).0,
+            point.x,
+            point.y,
+            hwnd,
+            None,
+        );
+        let _ = PostMessageW(Some(hwnd), WM_NULL, WPARAM(0), LPARAM(0));
+        let _ = DestroyMenu(menu);
+        command.0 as u32
     }
 }
 
