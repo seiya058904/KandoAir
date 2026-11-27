@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+# SPDX-FileCopyrightText: KandoAir contributors
 # SPDX-License-Identifier: CC0-1.0
 
 name: Bug Report
-description: File a bug report.
+description: File a bug report for KandoAir (Windows).
 labels: ['bug']
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to help improving Kando!
+        Thanks for taking the time to help improve KandoAir!
   - type: textarea
     id: summary
     attributes:
@@ -22,60 +23,49 @@ body:
       label: Steps to Reproduce the Issue
       description: Step by step, how can the problem be reproduced?
       value: |
-        1. Open the settings by using the tray icon
+        1. Open KandoAir or Settings via the tray icon
         2. Click on ...
         3. ...
-        ...
     validations:
       required: true
   - type: input
     id: version
     attributes:
-      label: Kando Version
-      description: What version of Kando are you running?
-      placeholder: e.g. "v1.0.0" or "latest from main branch"
+      label: KandoAir Version
+      description: What version of KandoAir are you running?
+      placeholder: e.g. "v0.1.0" or "latest from kandoair branch"
     validations:
       required: true
   - type: dropdown
-    id: installation-mthod
+    id: installation-method
     attributes:
       label: Installation Method
-      description: How did you install Kando?
-      multiple: true
+      description: How did you install KandoAir?
+      multiple: false
       options:
-        - Via an installer downloaded from a release on GitHub
-        - Via a portable zip archive downloaded from a release on GitHub
-        - Via a package manger
-        - Directly from the main branch
+        - Portable zip archive downloaded from GitHub Releases
+        - Built from source (kandoair branch)
         - Another method (specify in the comments below)
     validations:
       required: true
   - type: dropdown
     id: platform
     attributes:
-      label: Desktop Environment
-      description: On which desktop environment have you observed the issue?
-      multiple: true
+      label: Windows Edition
+      description: On which Windows version have you observed the issue?
+      multiple: false
       options:
-        - Windows
-        - macOS
-        - Linux
-        - GNOME on Wayland
-        - GNOME on X11
-        - KDE on Wayland
-        - KDE on X11
-        - Hyprland
-        - Any other X11-based environment
-        - Any other Wayland-based environment
-        - Other (specify below)
+        - Windows 11 (x64)
+        - Windows 10 (x64)
+        - Other Windows version (specify below)
     validations:
       required: true
   - type: input
     id: platform-version
     attributes:
-      label: Environment Version
-      description: Which version of the OS / Desktop Environment / Linux Distribution are you running?
-      placeholder: e.g. "Windows 11" or "KDE Plasma 6.0 on Ubuntu 24.04"
+      label: OS & WebView2 Version
+      description: Which Windows build and WebView2 Runtime version are you running?
+      placeholder: e.g. "Windows 11 24H2 (26100), WebView2 130+"
     validations:
       required: true
   - type: textarea
@@ -85,4 +75,4 @@ body:
       description: Use this to add any additional comments or logs which you think may be related.
   - type: markdown
     attributes:
-      value: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/kando-menu/kando/blob/main/docs/code-of-conduct.md).
+      value: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/seiya058904/KandoAir/blob/kandoair/docs/code-of-conduct.md).

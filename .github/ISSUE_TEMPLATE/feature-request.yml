@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+# SPDX-FileCopyrightText: KandoAir contributors
 # SPDX-License-Identifier: CC0-1.0
 
 name: Feature Request
-description: Suggest a new feature.
+description: Suggest a new feature for KandoAir.
 labels: ['feature request']
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to help improving Kando!
+        Thanks for taking the time to help improve KandoAir!
   - type: textarea
     id: description
     attributes:
@@ -18,23 +19,16 @@ body:
     validations:
       required: true
   - type: dropdown
-    id: platform
+    id: area
     attributes:
-      label: Affected Desktop Environments
-      description: Which desktop environment would benefit from this idea?
+      label: Affected Area
+      description: Which part of KandoAir would benefit from this idea?
       multiple: true
       options:
-        - All
-        - Windows
-        - macOS
-        - Linux
-        - GNOME on Wayland
-        - GNOME on X11
-        - KDE on Wayland
-        - KDE on X11
-        - Hyprland
-        - Any other X11-based environment
-        - Any other Wayland-based environment
+        - Pie Menu & Marking Mode
+        - Settings Window
+        - Native Rust Host & Actions
+        - Themes & Sound Effects
         - Other (specify below)
     validations:
       required: true
@@ -45,4 +39,4 @@ body:
       description: Use this to add any additional comments which you think may be related.
   - type: markdown
     attributes:
-      value: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/kando-menu/kando/blob/main/docs/code-of-conduct.md).
+      value: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/seiya058904/KandoAir/blob/kandoair/docs/code-of-conduct.md).

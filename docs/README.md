@@ -1,18 +1,19 @@
 <!--
 SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+SPDX-FileCopyrightText: KandoAir contributors
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# :cherry_blossom: Visit Kando's Homepage!
+# :cherry_blossom: KandoAir Documentation
 
-A lot of information is located at https://kando.menu.
-If you have more questions, feel free to join the [Kando Discord server](https://discord.gg/hZwbVSDkhy).
-Here are some quick links to get you started:
+KandoAir is a lightweight, Windows-only pie menu built with a native Rust Win32 host and the Windows system WebView2, derived from [Kando 3.0.1](https://github.com/kando-menu/kando).
 
-- [Installation on Windows](https://kando.menu/installation-on-windows/)
-- [Installation on Linux](https://kando.menu/installation-on-linux/)
-- [Installation on macOS](https://kando.menu/installation-on-macos/)
-- [Compiling Kando from Source](https://kando.menu/compile-from-source/)
-- [Config-file Reference](https://kando.menu/config-files/)
+Here are quick links to get started on Windows:
+
+- [Overview & Download (Windows 10 / 11 x64)](../README.md#download)
+- [GitHub Releases](https://github.com/seiya058904/KandoAir/releases)
+- [Usage, CLI & Portable Mode](../README.md#usage)
+- [Build from Source & Run Checks](../README.md#how-it-works)
+- [Upstream Kando Config-file Reference](https://kando.menu/config-files/)
 
 <p align="center"><img src ="img/hr.svg" /></p>
